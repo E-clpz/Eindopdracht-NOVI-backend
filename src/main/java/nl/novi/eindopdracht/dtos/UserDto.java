@@ -1,24 +1,32 @@
 package nl.novi.eindopdracht.dtos;
 
+import nl.novi.eindopdracht.models.Role;
+
 public class UserDto {
     private Long id;
     private String username;
     private String city;
-    private String phoneNumber;
     private String email;
+    private String phoneNumber;
+    private Role role;
 
-    public UserDto(Long id, String username, String city) {
+    public UserDto() {
+    }
+
+    public UserDto(Long id, String username, String city, Role role) {
         this.id = id;
         this.username = username;
         this.city = city;
+        this.role = role;
     }
 
-    public UserDto(Long id, String username, String city, String email, String phoneNumber) {
+    public UserDto(Long id, String username, String city, String email, String phoneNumber, Role role) {
         this.id = id;
         this.username = username;
         this.city = city;
         this.email = email;
         this.phoneNumber = phoneNumber;
+        this.role = role;
     }
 
     public Long getId() {
@@ -59,5 +67,13 @@ public class UserDto {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

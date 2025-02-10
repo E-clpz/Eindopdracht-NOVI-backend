@@ -2,6 +2,7 @@ package nl.novi.eindopdracht.services;
 
 import nl.novi.eindopdracht.dtos.UserDto;
 import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
+import nl.novi.eindopdracht.models.Role;
 import nl.novi.eindopdracht.models.User;
 import nl.novi.eindopdracht.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,17 +22,26 @@ public class UserService {
 
     public UserDto getUserDto(Long userId, boolean isAdmin, boolean isRequesterAccepted) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User niet gevonden"));
 
         if (isAdmin || isRequesterAccepted) {
-            return new UserDto(user.getId(), user.getUsername(), user.getCity(), user.getEmail(), user.getPhoneNumber());
+            return new UserDto(user.getId(), user.getUsername(), user.getCity(), user.getEmail(), user.getPhoneNumber(), user.getRole());
         } else {
-            return new UserDto(user.getId(), user.getUsername(), user.getCity());
+            return new UserDto(user.getId(), user.getUsername(), user.getCity(), user.getRole());
         }
     }
 
-    public User createUser(User user) {
-        return userRepository.save(user);
+    public UserDto createUser(UserDto userDto) {
+        User user = new User();
+        user.setUsername(userDto.getUsername());
+        user.setCity(userDto.getCity());
+        user.setEmail(userDto.getEmail());
+        user.setPhoneNumber(userDto.getPhoneNumber());
+        user.setRole(userDto.getRole());
+
+        User savedUser = userRepository.save(user);
+
+        return new UserDto(savedUser.getId(), savedUser.getUsername(), savedUser.getCity(), savedUser.getEmail(), savedUser.getPhoneNumber(), savedUser.getRole());
     }
 
     public List<User> getAllUsers() {

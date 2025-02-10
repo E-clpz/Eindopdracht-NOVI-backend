@@ -30,28 +30,30 @@ public class UserController {
         List<User> users;
 
         if (username.isPresent()) {
-            users = List.of(userService.getUserByUsername(username.get()).orElse(null));
+            Optional<User> user = userService.getUserByUsername(username.get());
+            users = user.map(List::of).orElse(List.of());
         } else if (email.isPresent()) {
-            users = List.of(userService.getUserByEmail(email.get()).orElse(null));
+            Optional<User> user = userService.getUserByEmail(email.get());
+            users = user.map(List::of).orElse(List.of());
         } else {
             users = userService.getAllUsers();
         }
-        return ResponseEntity.ok().body(users);
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUser(
             @PathVariable Long id,
-            @RequestParam boolean isAdmin,
-            @RequestParam boolean isRequesterAccepted) {
+            @RequestParam(value = "isAdmin", required = false, defaultValue = "false") boolean isAdmin,
+            @RequestParam(value = "isRequesterAccepted", required = false, defaultValue = "false") boolean isRequesterAccepted) {
+
         UserDto userDto = userService.getUserDto(id, isAdmin, isRequesterAccepted);
-        return ResponseEntity.ok().body(userDto);
+        return ResponseEntity.ok(userDto);
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(
-            @RequestBody User user) {
-        User createdUser = userService.createUser(user);
+    public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
+        UserDto createdUser = userService.createUser(userDto);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 

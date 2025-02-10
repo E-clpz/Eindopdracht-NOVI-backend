@@ -26,13 +26,34 @@ public class User {
     @Column(nullable = false)
     private String city;
 
+    @Column(nullable = false)
+    private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    public boolean isHelper() {
+        return Role.HELPER.equals(this.role);
+    }
+
+    public boolean isRequester() {
+        return Role.REQUESTER.equals(this.role);
+    }
+
+    public boolean isAdmin() {
+        return Role.ADMIN.equals(this.role);
+    }
+
     public User() {}
 
-    public User(String username, String email, String phoneNumber, String city) {
+        public User(String username, String email, String phoneNumber, String city, String password, Role role) {
         this.username = username;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.city = city;
+        this.password = password;
+        this.role = role;
     }
 
     public Long getId() {
@@ -73,5 +94,21 @@ public class User {
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }
