@@ -9,6 +9,7 @@ public class UserDto {
     private String email;
     private String phoneNumber;
     private Role role;
+    private String password;
 
     public UserDto() {
     }
@@ -20,13 +21,14 @@ public class UserDto {
         this.role = role;
     }
 
-    public UserDto(Long id, String username, String city, String email, String phoneNumber, Role role) {
+    public UserDto(Long id, String username, String city, String email, String phoneNumber, Role role, String password) {
         this.id = id;
         this.username = username;
         this.city = city;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.role = role;
+        this.password = password;
     }
 
     public Long getId() {
@@ -76,4 +78,13 @@ public class UserDto {
     public void setRole(Role role) {
         this.role = role;
     }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
+
