@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "requests")
 public class Request {
 
     @Id
@@ -17,8 +18,9 @@ public class Request {
     @Column(nullable = false, length = 2000)
     private String description;
 
-    @Column(nullable = false)
-    private String category;
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
     @Column(nullable = false)
     private String status;
@@ -40,7 +42,7 @@ public class Request {
     public Request() {
     }
 
-    public Request(String title, String description, String category, String status, String city, User requester) {
+    public Request(String title, String description, Category category, String status, String city, User requester) {
         this.title = title;
         this.description = description;
         this.category = category;
@@ -74,11 +76,11 @@ public class Request {
         this.description = description;
     }
 
-    public String getCategory() {
+    public Category getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(Category category) {
         this.category = category;
     }
 

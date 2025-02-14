@@ -3,8 +3,10 @@ package nl.novi.eindopdracht.services;
 import nl.novi.eindopdracht.dtos.RequestDto;
 import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
 import nl.novi.eindopdracht.exceptions.UnauthorizedException;
+import nl.novi.eindopdracht.models.Category;
 import nl.novi.eindopdracht.models.Request;
 import nl.novi.eindopdracht.models.User;
+import nl.novi.eindopdracht.repositories.CategoryRepository;
 import nl.novi.eindopdracht.repositories.RequestRepository;
 import nl.novi.eindopdracht.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,24 +20,27 @@ public class RequestService {
 
     private final RequestRepository requestRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
     @Autowired
-    public RequestService(RequestRepository requestRepository, UserRepository userRepository) {
+    public RequestService(RequestRepository requestRepository, UserRepository userRepository, CategoryRepository categoryRepository) {
         this.requestRepository = requestRepository;
         this.userRepository = userRepository;
+        this.categoryRepository = categoryRepository;
     }
 
-    public List<RequestDto> getAllRequestsForHelpers(String category, String city, String sortByDate, User user) {
+    public List<RequestDto> getAllRequestsForHelpers(String categoryName, String city, String sortByDate, User user) {
         if (!user.getRole().equals("HELPER")) {
             throw new UnauthorizedException("Alleen helpers mogen alle hulpvragen bekijken.");
         }
 
         List<Request> requests = requestRepository.findAll();
 
-        if (category != null) {
-            requests = requests.stream()
-                    .filter(request -> request.getCategory().equalsIgnoreCase(category))
-                    .collect(Collectors.toList());
+        if (categoryName != null) {
+            Category category = categoryRepository.findByName(categoryName)
+                    .orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden: " + categoryName));
+
+            requests = requestRepository.findByCategory(category);
         }
 
         if (city != null) {
@@ -68,7 +73,9 @@ public class RequestService {
 
         request.setTitle(requestDto.getTitle());
         request.setDescription(requestDto.getDescription());
-        request.setCategory(requestDto.getCategory());
+        Category category = categoryRepository.findByName(requestDto.getCategory())
+                .orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden: " + requestDto.getCategory()));
+        request.setCategory(category);
         request.setStatus(requestDto.getStatus());
         request.setCity(requestDto.getCity());
 
@@ -92,7 +99,7 @@ public class RequestService {
                 request.getId(),
                 request.getTitle(),
                 request.getDescription(),
-                request.getCategory(),
+                request.getCategory().getName(),
                 request.getStatus(),
                 request.getCity(),
                 request.getRequester().getId(),

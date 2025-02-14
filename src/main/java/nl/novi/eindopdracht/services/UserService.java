@@ -33,7 +33,11 @@ public class UserService {
 
     private boolean isValidPassword(String password) {
         String passwordPattern = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$";
-        return password.matches(passwordPattern);
+        boolean isValid = password.matches(passwordPattern);
+        if (!isValid) {
+            System.out.println("Fout wachtwoord: " + password);
+        }
+        return isValid;
     }
 
     public UserDto createUser(UserDto userDto) {
