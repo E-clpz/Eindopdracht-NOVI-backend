@@ -1,4 +1,10 @@
 package nl.novi.eindopdracht.repositories;
 
-public class CategoryRepository {
+import nl.novi.eindopdracht.models.Category;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface CategoryRepository extends JpaRepository<Category, Long> {
+    Optional<Category> findByName(String name);
 }
