@@ -19,20 +19,15 @@ import java.util.stream.Collectors;
 public class RequestService {
 
     private final RequestRepository requestRepository;
-    private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
 
     @Autowired
-    public RequestService(RequestRepository requestRepository, UserRepository userRepository, CategoryRepository categoryRepository) {
+    public RequestService(RequestRepository requestRepository, CategoryRepository categoryRepository) {
         this.requestRepository = requestRepository;
-        this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
     }
 
-    public List<RequestDto> getAllRequestsForHelpers(String categoryName, String city, String sortByDate, User user) {
-        if (!user.getRole().equals("HELPER")) {
-            throw new UnauthorizedException("Alleen helpers mogen alle hulpvragen bekijken.");
-        }
+    public List<RequestDto> getAllRequestsForHelpers(String categoryName, String city, String sortByDate) {
 
         List<Request> requests = requestRepository.findAll();
 
