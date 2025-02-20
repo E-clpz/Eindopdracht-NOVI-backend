@@ -1,17 +1,17 @@
 package nl.novi.eindopdracht.services;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import java.util.Date;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
 import java.security.Key;
 import java.util.*;
 import java.util.function.Function;
@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
+
     @Value("${jwt.SecretKey}")
     private String SECRET_KEY;
 
@@ -32,59 +33,15 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
-
-    public String extractAudience(String token) {
-        return extractClaim(token, Claims::getAudience);
-    }
-
-    public List<GrantedAuthority> extractRoles(String token) {
-        final Claims claims = extractAllClaims(token);
-        List<String> roles = claims.get(ROLES_CLAIMS_NAME, List.class);
-        if (roles == null) return Collections.emptyList();
-        return roles.stream()
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
-    }
-
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
-    private <T> T extractClaim(String token, Function<Claims, T>
-            claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
-
-    private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody();
-    }
-
-    private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(userDetails, 1000 * 60 * 60 * 24 * 10L);
-    }
-
     public String generateToken(UserDetails userDetails, Long milliSeconds) {
         Map<String, Object> claims = new HashMap<>();
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
         claims.put(ROLES_CLAIMS_NAME, roles);
-        return createToken(claims, userDetails.getUsername(), milliSeconds);
-    }
-
-    private String createToken(Map<String, Object> claims, String
-            subject, long milliSeconds) {
 
         long currentTime = System.currentTimeMillis();
-        return createToken(claims, subject, currentTime, milliSeconds);
+        return createToken(claims, userDetails.getUsername(), currentTime, milliSeconds);
     }
 
     private String createToken(Map<String, Object> claims, String subject, long currentTime, long validPeriod) {
@@ -106,5 +63,39 @@ public class JwtService {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public List<GrantedAuthority> extractRoles(String jwt) {
+        final Claims claims = extractAllClaims(jwt);
+        List<String> roles = claims.get(ROLES_CLAIMS_NAME, List.class);
+        if (roles == null) return Collections.emptyList();
+        return roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    }
+
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody();
+    }
+
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    private String extractAudience(String token) {
+        return extractClaim(token, Claims::getAudience);
     }
 }

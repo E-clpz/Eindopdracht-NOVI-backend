@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -30,26 +31,36 @@ public class SecurityConfig {
                 .httpBasic(hp -> hp.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/login").permitAll()
+                        .requestMatchers("/auth/login").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/requests").hasRole("HELPER")
-
+                        .requestMatchers(HttpMethod.GET, "/api/requests").hasAnyRole("HELPER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/requests").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.PUT, "/api/requests/{id}").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.DELETE, "/api/requests/{id}").hasRole("REQUESTER")
 
-                        .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}").authenticated()
+
+                        .requestMatchers(HttpMethod.POST, "/api/reviews").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/{id}").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
 
                         .anyRequest().denyAll()
                 )
-                .addFilterBefore(new JwtRequestFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtRequestFilter(jwtService, userDetailsService), UsernamePasswordAuthenticationFilter.class)
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> {})
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
+    }
+
+    @Bean
+    public JwtRequestFilter jwtRequestFilter(JwtService jwtService, UserDetailsServiceImpl userDetailsService) {
+        return new JwtRequestFilter(jwtService, userDetailsService);
     }
 
     @Bean

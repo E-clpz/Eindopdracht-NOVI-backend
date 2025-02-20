@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -33,21 +36,9 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-    public boolean isHelper() {
-        return Role.HELPER.equals(this.role);
-    }
+        public User() {}
 
-    public boolean isRequester() {
-        return Role.REQUESTER.equals(this.role);
-    }
-
-    public boolean isAdmin() {
-        return Role.ADMIN.equals(this.role);
-    }
-
-    public User() {}
-
-        public User(String username, String email, String phoneNumber, String city, String password, Role role) {
+    public User(String username, String email, String phoneNumber, String city, String password, Role role) {
         this.username = username;
         this.email = email;
         this.phoneNumber = phoneNumber;

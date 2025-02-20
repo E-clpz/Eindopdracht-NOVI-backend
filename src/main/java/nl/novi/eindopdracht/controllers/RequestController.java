@@ -17,11 +17,9 @@ import java.util.List;
 @RequestMapping("/api/requests")
 public class RequestController {
     private final RequestService requestService;
-    private final UserService userService;
 
-    public RequestController(RequestService requestService, UserService userService) {
+    public RequestController(RequestService requestService) {
         this.requestService = requestService;
-        this.userService = userService;
     }
 
     @GetMapping
@@ -30,10 +28,8 @@ public class RequestController {
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String sortByDate,
             @AuthenticationPrincipal User user) {
-        if (!Role.HELPER.equals(user.getRole())) {
-            throw new UnauthorizedException("Alleen helpers mogen alle hulpvragen bekijken.");
-        }
-        return requestService.getAllRequestsForHelpers(category, city, sortByDate, user);
+
+        return requestService.getAllRequestsForHelpers(category, city, sortByDate);
     }
 
     @GetMapping("/my")
