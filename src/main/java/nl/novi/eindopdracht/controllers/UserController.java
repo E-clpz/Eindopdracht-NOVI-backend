@@ -2,10 +2,8 @@ package nl.novi.eindopdracht.controllers;
 
 import nl.novi.eindopdracht.dtos.UserDto;
 import nl.novi.eindopdracht.models.User;
-import nl.novi.eindopdracht.services.AuthService;
 import nl.novi.eindopdracht.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -2,6 +2,7 @@ package nl.novi.eindopdracht.services;
 
 import nl.novi.eindopdracht.dtos.UserDto;
 import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
+import nl.novi.eindopdracht.exceptions.UsernameAlreadyExistsException;
 import nl.novi.eindopdracht.models.Role;
 import nl.novi.eindopdracht.models.User;
 import nl.novi.eindopdracht.repositories.UserRepository;
@@ -42,6 +43,10 @@ public class UserService {
     }
 
     public UserDto createUser(UserDto userDto) {
+        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
+            throw new UsernameAlreadyExistsException("Gebruikersnaam is al in gebruik");
+        }
+
         if (userRepository.existsByEmail(userDto.getEmail())) {
             throw new IllegalArgumentException("E-mailadres is al in gebruik.");
         }
