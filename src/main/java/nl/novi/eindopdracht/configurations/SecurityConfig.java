@@ -40,6 +40,7 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET, "/api/requests").hasAnyRole("HELPER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/requests").hasRole("REQUESTER")
+                        .requestMatchers(HttpMethod.GET, "/api/requests/my").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.PUT, "/api/requests/{id}").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.DELETE, "/api/requests/{id}").hasRole("REQUESTER")
 
@@ -69,6 +70,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

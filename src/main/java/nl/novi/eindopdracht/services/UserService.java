@@ -22,11 +22,11 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public UserDto getUserDto(Long userId, boolean isAdmin, boolean isRequesterAccepted) {
+    public UserDto getUserDto(Long userId, boolean isAdmin, boolean isRequesterAccepted, Long requesterId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User niet gevonden"));
 
-        if (isAdmin || isRequesterAccepted) {
+        if (isAdmin || isRequesterAccepted || userId.equals(requesterId)) {
             return new UserDto(user.getId(), user.getUsername(), user.getCity(), user.getEmail(), user.getPhoneNumber(), user.getRole(), user.getPassword());
         } else {
             return new UserDto(user.getId(), user.getUsername(), user.getCity(), user.getRole());

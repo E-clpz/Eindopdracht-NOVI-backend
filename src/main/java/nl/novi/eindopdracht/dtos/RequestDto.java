@@ -1,5 +1,7 @@
 package nl.novi.eindopdracht.dtos;
 
+import java.time.LocalDate;
+
 public class RequestDto {
     private Long id;
     private String title;
@@ -9,11 +11,12 @@ public class RequestDto {
     private String city;
     private Long requesterId;
     private Long helperId;
+    private LocalDate preferredDate;
 
     public RequestDto() {
     }
 
-    public RequestDto(Long id, String title, String description, String category, String status, String city, Long requesterId, Long helperId) {
+    public RequestDto(Long id, String title, String description, String category, String status, String city, Long requesterId, Long helperId, LocalDate preferredDate) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -22,6 +25,7 @@ public class RequestDto {
         this.city = city;
         this.requesterId = requesterId;
         this.helperId = helperId;
+        this.preferredDate = preferredDate;
     }
 
     public Long getId() {
@@ -86,5 +90,13 @@ public class RequestDto {
 
     public void setHelperId(Long helperId) {
         this.helperId = helperId;
+    }
+
+    public LocalDate getPreferredDate() {
+        return preferredDate;
+    }
+
+    public void setPreferredDate(LocalDate preferredDate) {
+        this.preferredDate = preferredDate;
     }
 }

@@ -1,7 +1,9 @@
 package nl.novi.eindopdracht.models;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -36,13 +38,17 @@ public class Request {
     @JoinColumn(name = "helper_id")
     private User helper;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
+    @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDate preferredDate;
 
     public Request() {
     }
 
-    public Request(String title, String description, Category category, String status, String city, User requester) {
+    public Request(String title, String description, Category category, String status, String city, User requester, LocalDate preferredDate) {
         this.title = title;
         this.description = description;
         this.category = category;
@@ -50,6 +56,7 @@ public class Request {
         this.city = city;
         this.requester = requester;
         this.createdAt = LocalDateTime.now();
+        this.preferredDate = preferredDate;
     }
 
     public Long getId() {
@@ -122,5 +129,13 @@ public class Request {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDate getPreferredDate() {
+        return preferredDate;
+    }
+
+    public void setPreferredDate(LocalDate preferredDate) {
+        this.preferredDate = preferredDate;
     }
 }

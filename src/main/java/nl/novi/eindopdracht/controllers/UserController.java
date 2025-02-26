@@ -2,6 +2,7 @@ package nl.novi.eindopdracht.controllers;
 
 import nl.novi.eindopdracht.dtos.UserDto;
 import nl.novi.eindopdracht.models.User;
+import nl.novi.eindopdracht.services.JwtService;
 import nl.novi.eindopdracht.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,10 +17,12 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    private final JwtService jwtService;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, JwtService jwtService) {
         this.userService = userService;
+        this.jwtService = jwtService;
     }
 
     @GetMapping
@@ -45,10 +48,18 @@ public class UserController {
     public ResponseEntity<UserDto> getUser(
             @PathVariable Long id,
             @RequestParam(value = "isAdmin", required = false, defaultValue = "false") boolean isAdmin,
-            @RequestParam(value = "isRequesterAccepted", required = false, defaultValue = "false") boolean isRequesterAccepted) {
+            @RequestParam(value = "isRequesterAccepted", required = false, defaultValue = "false") boolean isRequesterAccepted,
+            @RequestParam(value = "requesterId", required = false) Long requesterId,
+            @RequestHeader("Authorization") String token) {
 
-        UserDto userDto = userService.getUserDto(id, isAdmin, isRequesterAccepted);
-        return ResponseEntity.ok(userDto);
+        Long userIdFromToken = jwtService.extractUserId(token.substring(7));
+
+        if (userIdFromToken.equals(id) || isAdmin) {
+            UserDto userDto = userService.getUserDto(id, isAdmin, isRequesterAccepted, requesterId);
+            return ResponseEntity.ok(userDto);
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
     }
 
     @PostMapping

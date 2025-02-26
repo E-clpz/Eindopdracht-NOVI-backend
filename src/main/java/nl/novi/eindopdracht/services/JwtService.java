@@ -44,6 +44,10 @@ public class JwtService {
         return createToken(claims, userDetails.getUsername(), currentTime, milliSeconds);
     }
 
+    public Long extractUserId(String token) {
+        return Long.parseLong(extractClaim(token, Claims::getSubject));
+    }
+
     private String createToken(Map<String, Object> claims, String subject, long currentTime, long validPeriod) {
         return Jwts.builder()
                 .setClaims(claims)
