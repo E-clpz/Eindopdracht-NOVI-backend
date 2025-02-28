@@ -55,7 +55,7 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
 
-                        .anyRequest().denyAll()
+                        .anyRequest().denyAll() //
                 )
                 .addFilterBefore(jwtRequestFilter(jwtService, userDetailsService), UsernamePasswordAuthenticationFilter.class)
                 .csrf(csrf -> csrf.disable())
