@@ -7,6 +7,8 @@ import nl.novi.eindopdracht.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,12 +29,16 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers(
+            @RequestParam(value = "id", required = false) Optional<Long> id,
             @RequestParam(value = "username", required = false) Optional<String> username,
             @RequestParam(value = "email", required = false) Optional<String> email) {
 
         List<User> users;
 
-        if (username.isPresent()) {
+        if (id.isPresent()) {
+            Optional<User> user = userService.getUserById(id.get());
+            users = user.map(List::of).orElse(List.of());
+        } else if (username.isPresent()) {
             Optional<User> user = userService.getUserByUsername(username.get());
             users = user.map(List::of).orElse(List.of());
         } else if (email.isPresent()) {
@@ -41,25 +47,15 @@ public class UserController {
         } else {
             users = userService.getAllUsers();
         }
+
         return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDto> getUser(
-            @PathVariable Long id,
-            @RequestParam(value = "isAdmin", required = false, defaultValue = "false") boolean isAdmin,
-            @RequestParam(value = "isRequesterAccepted", required = false, defaultValue = "false") boolean isRequesterAccepted,
-            @RequestParam(value = "requesterId", required = false) Long requesterId,
-            @RequestHeader("Authorization") String token) {
-
-        Long userIdFromToken = jwtService.extractUserId(token.substring(7));
-
-        if (userIdFromToken.equals(id) || isAdmin) {
-            UserDto userDto = userService.getUserDto(id, isAdmin, isRequesterAccepted, requesterId);
-            return ResponseEntity.ok(userDto);
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    @GetMapping("/my")
+    public ResponseEntity<UserDto> getMyProfile(@AuthenticationPrincipal UserDetails user) {
+        Long userIdFromToken = Long.parseLong(user.getUsername());
+        UserDto userDto = userService.getUserDto(userIdFromToken, false, false, null);
+        return ResponseEntity.ok(userDto);
     }
 
     @PostMapping

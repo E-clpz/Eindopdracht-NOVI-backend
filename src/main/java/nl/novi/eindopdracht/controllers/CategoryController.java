@@ -20,12 +20,18 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}")
-    public CategoryDto getCategoryById(@PathVariable Long id) {
+    public CategoryDto getCategoryById(@PathVariable long id) {
         return categoryService.getCategoryById(id);
+    }
+
+    @PutMapping("/{id}")
+    public CategoryDto updateCategory(@PathVariable long id, @RequestBody CategoryDto categoryDto) {
+        return categoryService.updateCategory(id, categoryDto);
     }
 
     @PostMapping
     public CategoryDto createCategory(@RequestBody CategoryDto categoryDto) {
         return categoryService.createCategory(categoryDto);
+
     }
 }

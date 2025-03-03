@@ -33,4 +33,12 @@ public class CategoryService {
         Category savedCategory = categoryRepository.save(category);
         return new CategoryDto(savedCategory.getId(), savedCategory.getName());
     }
+
+    public CategoryDto updateCategory(Long id, CategoryDto categoryDto) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden"));
+        category.setName(categoryDto.getName());
+        Category updatedCategory = categoryRepository.save(category);
+        return new CategoryDto(updatedCategory.getId(), updatedCategory.getName());
+    }
 }

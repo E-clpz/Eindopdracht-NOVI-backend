@@ -1,5 +1,6 @@
 package nl.novi.eindopdracht.services;
 
+import jakarta.transaction.Transactional;
 import nl.novi.eindopdracht.dtos.RequestDto;
 import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
 import nl.novi.eindopdracht.exceptions.UnauthorizedException;
@@ -11,7 +12,7 @@ import nl.novi.eindopdracht.repositories.CategoryRepository;
 import nl.novi.eindopdracht.repositories.RequestRepository;
 import nl.novi.eindopdracht.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +35,18 @@ public class RequestService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
+    public RequestDto acceptRequest(Long requestId, User helper) {
+        Request request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hulpvraag niet gevonden"));
+
+        request.setHelper(helper);
+
+        request = requestRepository.save(request);
+
+        return requestMapper.toDto(request);
+    }
+
     public List<RequestDto> getAllRequestsForHelpers(String categoryName, String city, String sortByDate) {
         List<Request> requests;
 
@@ -52,9 +65,9 @@ public class RequestService {
         }
 
         if ("asc".equalsIgnoreCase(sortByDate)) {
-            requests.sort((r1, r2) -> r1.getCreatedAt().compareTo(r2.getCreatedAt()));
+            requests.sort((r1, r2) -> r1.getPreferredDate().compareTo(r2.getPreferredDate()));
         } else if ("desc".equalsIgnoreCase(sortByDate)) {
-            requests.sort((r1, r2) -> r2.getCreatedAt().compareTo(r1.getCreatedAt()));
+            requests.sort((r1, r2) -> r2.getPreferredDate().compareTo(r1.getPreferredDate()));
         }
 
         return requests.stream().map(requestMapper::toDto).collect(Collectors.toList());
@@ -71,8 +84,9 @@ public class RequestService {
         Request request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Request met id: " + id + " niet gevonden"));
 
-        if (!request.getRequester().getUsername().equals(user.getUsername())) {
-            throw new UnauthorizedException("Je mag alleen je eigen hulpvragen bijwerken.");
+        if (!(request.getRequester().getUsername().equals(user.getUsername()) ||
+                user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")))) {
+            throw new UnauthorizedException("Je mag alleen je eigen hulpvragen bijwerken, of je moet admin zijn.");
         }
 
         request.setTitle(requestDto.getTitle());
@@ -93,10 +107,10 @@ public class RequestService {
         Request request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Request met id: " + id + " niet gevonden"));
 
-        if (!request.getRequester().getUsername().equals(user.getUsername())) {
-            throw new UnauthorizedException("Je mag alleen je eigen hulpvragen verwijderen.");
+        if (!request.getRequester().getUsername().equals(user.getUsername()) ||
+                (user.getAuthorities().stream().filter((role) -> role.getAuthority().equals("ROLE_ADMIN")).findAny().get())) {
+            throw new UnauthorizedException("Je mag alleen je eigen hulpvragen verwijderen, of je moet admin zijn.");
         }
-
         requestRepository.delete(request);
     }
 

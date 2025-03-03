@@ -14,10 +14,10 @@ public class Request {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, length = 30)
     private String title;
 
-    @Column(nullable = false, length = 2000)
+    @Column(nullable = false, length = 250)
     private String description;
 
     @ManyToOne
@@ -34,7 +34,7 @@ public class Request {
     @JoinColumn(name = "requester_id", nullable = false)
     private User requester;
 
-    @ManyToOne
+    @ManyToOne(optional = true)
     @JoinColumn(name = "helper_id")
     private User helper;
 

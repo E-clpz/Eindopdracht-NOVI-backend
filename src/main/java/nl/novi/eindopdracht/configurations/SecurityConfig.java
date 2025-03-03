@@ -36,26 +36,32 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/auth/login").permitAll()
+
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-
-                        .requestMatchers(HttpMethod.GET, "/api/requests").hasAnyRole("HELPER", "ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/requests").hasRole("REQUESTER")
-                        .requestMatchers(HttpMethod.GET, "/api/requests/my").hasRole("REQUESTER")
-                        .requestMatchers(HttpMethod.GET, "/api/requests/{id}").hasRole("REQUESTER")
-                        .requestMatchers(HttpMethod.PUT, "/api/requests/{id}").hasRole("REQUESTER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/requests/{id}").hasRole("REQUESTER")
-
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/my").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/users/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/my").hasAnyRole("HELPER", "REQUESTER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/requests").hasRole("REQUESTER")
+                        .requestMatchers(HttpMethod.GET, "/api/requests").hasAnyRole("HELPER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/requests/my").hasRole("REQUESTER")
+                        .requestMatchers(HttpMethod.GET, "/api/requests/{id}").hasAnyRole("HELPER", "REQUESTER")
+                        .requestMatchers(HttpMethod.PUT, "/api/requests/{id}").hasAnyRole("REQUESTER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/requests/**").hasAnyRole("HELPER", "REQUESTER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/requests/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/requests/**").hasRole("REQUESTER")
 
                         .requestMatchers(HttpMethod.POST, "/api/reviews").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/{id}").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/categories").hasAnyRole("ADMIN", "REQUESTER")
 
-                        .anyRequest().denyAll() //
+                        .anyRequest().denyAll()
                 )
                 .addFilterBefore(jwtRequestFilter(jwtService, userDetailsService), UsernamePasswordAuthenticationFilter.class)
                 .csrf(csrf -> csrf.disable())
