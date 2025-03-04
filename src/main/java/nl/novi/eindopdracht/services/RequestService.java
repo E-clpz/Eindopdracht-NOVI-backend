@@ -7,6 +7,7 @@ import nl.novi.eindopdracht.exceptions.UnauthorizedException;
 import nl.novi.eindopdracht.mappers.RequestMapper;
 import nl.novi.eindopdracht.models.Category;
 import nl.novi.eindopdracht.models.Request;
+import nl.novi.eindopdracht.models.Role;
 import nl.novi.eindopdracht.models.User;
 import nl.novi.eindopdracht.repositories.CategoryRepository;
 import nl.novi.eindopdracht.repositories.RequestRepository;
@@ -106,13 +107,13 @@ public class RequestService {
     public void deleteRequest(Long id, UserDetails user) {
         Request request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Request met id: " + id + " niet gevonden"));
-
-        if (!request.getRequester().getUsername().equals(user.getUsername()) ||
-                (user.getAuthorities().stream().filter((role) -> role.getAuthority().equals("ROLE_ADMIN")).findAny().get())) {
+        if (!request.getRequester().getUsername().equals(user.getUsername()) && user.getAuthorities().stream()
+                .noneMatch(auth -> auth.getAuthority().contains(Role.ADMIN.toString()))) {
             throw new UnauthorizedException("Je mag alleen je eigen hulpvragen verwijderen, of je moet admin zijn.");
         }
         requestRepository.delete(request);
     }
+
 
     public RequestDto createRequest(RequestDto requestDto, UserDetails userDetails) {
         Category category = categoryRepository.findByName(requestDto.getCategory())

@@ -38,13 +38,12 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/my").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/users/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/users/my").hasAnyRole("HELPER", "REQUESTER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/my").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/users/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
 
                         .requestMatchers(HttpMethod.POST, "/api/requests").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.GET, "/api/requests").hasAnyRole("HELPER", "ADMIN")
@@ -52,7 +51,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/requests/{id}").hasAnyRole("HELPER", "REQUESTER")
                         .requestMatchers(HttpMethod.PUT, "/api/requests/{id}").hasAnyRole("REQUESTER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/requests/**").hasAnyRole("HELPER", "REQUESTER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/requests/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/requests/{id}").hasAnyRole("ADMIN", "REQUESTER")
                         .requestMatchers(HttpMethod.DELETE, "/api/requests/**").hasRole("REQUESTER")
 
                         .requestMatchers(HttpMethod.POST, "/api/reviews").authenticated()

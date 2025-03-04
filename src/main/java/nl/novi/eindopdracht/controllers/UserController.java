@@ -53,8 +53,7 @@ public class UserController {
 
     @GetMapping("/my")
     public ResponseEntity<UserDto> getMyProfile(@AuthenticationPrincipal UserDetails user) {
-        Long userIdFromToken = Long.parseLong(user.getUsername());
-        UserDto userDto = userService.getUserDto(userIdFromToken, false, false, null);
+        UserDto userDto = userService.getUserDto(user, false, false, null);
         return ResponseEntity.ok(userDto);
     }
 

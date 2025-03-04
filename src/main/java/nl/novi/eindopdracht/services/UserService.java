@@ -7,6 +7,7 @@ import nl.novi.eindopdracht.models.Role;
 import nl.novi.eindopdracht.models.User;
 import nl.novi.eindopdracht.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,8 +23,8 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public UserDto getUserDto(Long userId, boolean isAdmin, boolean isRequesterAccepted, Long requesterId) {
-        User user = userRepository.findById(userId)
+    public UserDto getUserDto(UserDetails userId, boolean isAdmin, boolean isRequesterAccepted, Long requesterId) {
+        User user = userRepository.findByUsername(userId.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User niet gevonden"));
 
         if (isAdmin || isRequesterAccepted || userId.equals(requesterId)) {
