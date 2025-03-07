@@ -41,7 +41,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users/my").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/users/my").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/users/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}").hasAnyRole("REQUESTER", "HELPER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
 
@@ -49,16 +49,20 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/requests").hasAnyRole("HELPER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/requests/my").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.GET, "/api/requests/{id}").hasAnyRole("HELPER", "REQUESTER")
+                        .requestMatchers(HttpMethod.PUT, "/api/requests/{id}/reject-helper").hasRole("REQUESTER")
+                        .requestMatchers(HttpMethod.PUT, "/api/requests/{id}/accept-helper").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.PUT, "/api/requests/{id}").hasAnyRole("REQUESTER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/requests/**").hasAnyRole("HELPER", "REQUESTER")
                         .requestMatchers(HttpMethod.DELETE, "/api/requests/{id}").hasAnyRole("ADMIN", "REQUESTER")
                         .requestMatchers(HttpMethod.DELETE, "/api/requests/**").hasRole("REQUESTER")
 
-                        .requestMatchers(HttpMethod.POST, "/api/reviews").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/reviews/requester/**").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.GET, "/api/reviews/{id}").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories/{id}").hasAnyRole("ADMIN", "REQUESTER")
                         .requestMatchers(HttpMethod.PUT, "/api/categories").hasAnyRole("ADMIN", "REQUESTER")
+                        .requestMatchers(HttpMethod.PUT, "/api/categories/{id}").hasAnyRole("ADMIN", "REQUESTER")
 
                         .anyRequest().denyAll()
                 )

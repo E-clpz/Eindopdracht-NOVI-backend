@@ -53,7 +53,7 @@ public class UserController {
 
     @GetMapping("/my")
     public ResponseEntity<UserDto> getMyProfile(@AuthenticationPrincipal UserDetails user) {
-        UserDto userDto = userService.getUserDto(user, false, false, null);
+        UserDto userDto = userService.getUserDto(user, false, false);
         return ResponseEntity.ok(userDto);
     }
 
@@ -61,6 +61,12 @@ public class UserController {
     public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
         UserDto createdUser = userService.createUser(userDto);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
+        UserDto updatedUser = userService.updateUser(id, userDto);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

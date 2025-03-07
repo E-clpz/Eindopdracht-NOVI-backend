@@ -65,7 +65,6 @@ public class RequestController {
         return ResponseEntity.status(201).body(createdRequest);
     }
 
-
     @PutMapping("/{id}")
     public RequestDto updateRequest(@PathVariable Long id, @Valid @RequestBody RequestDto requestDTO, @AuthenticationPrincipal UserDetails user) {
         return requestService.updateRequest(id, requestDTO, user);
@@ -80,7 +79,6 @@ public class RequestController {
 
         return ResponseEntity.ok(updatedRequest);
     }
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRequest(@PathVariable Long id, @AuthenticationPrincipal UserDetails user) {

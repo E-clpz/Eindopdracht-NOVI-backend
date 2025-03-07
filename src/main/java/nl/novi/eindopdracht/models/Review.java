@@ -24,7 +24,7 @@ public class Review {
     @Min(value = 1, message = "De beoordeling moet minimaal 1 zijn")
     @Max(value = 5, message = "De beoordeling moet maximaal 5 zijn")
     @Column(nullable = false)
-    private int rating;
+    private Integer rating;
 
     @NotNull(message = "Review tekst mag niet leeg zijn")
     @Column(nullable = false)
@@ -33,7 +33,7 @@ public class Review {
     public Review() {
     }
 
-    public Review(User requester, User helper, int rating, String comment) {
+    public Review(User requester, User helper, Integer rating, String comment) {
         this.requester = requester;
         this.helper = helper;
         this.rating = rating;
@@ -64,11 +64,11 @@ public class Review {
         this.helper = helper;
     }
 
-    public int getRating() {
+    public Integer getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(Integer rating) {
         this.rating = rating;
     }
 

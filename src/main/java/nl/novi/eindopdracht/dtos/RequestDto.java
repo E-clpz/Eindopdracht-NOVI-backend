@@ -10,13 +10,17 @@ public class RequestDto {
     private String status;
     private String city;
     private Long requesterId;
-    private Long helperId;
+    private HelperDto helper;
     private LocalDate preferredDate;
+    private String requesterEmail;
+    private String requesterPhoneNumber;
+    private String helperEmail;
+    private String helperPhoneNumber;
 
     public RequestDto() {
     }
 
-    public RequestDto(Long id, String title, String description, String category, String status, String city, Long requesterId, Long helperId, LocalDate preferredDate) {
+    public RequestDto(Long id, String title, String description, String category, String status, String city, Long requesterId, HelperDto helper, LocalDate preferredDate, String requesterEmail, String requesterPhoneNumber, String helperEmail, String helperPhoneNumber) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -24,10 +28,15 @@ public class RequestDto {
         this.status = status;
         this.city = city;
         this.requesterId = requesterId;
-        this.helperId = helperId;
+        this.helper = helper;
         this.preferredDate = preferredDate;
+        this.requesterEmail = requesterEmail;
+        this.requesterPhoneNumber = requesterPhoneNumber;
+        this.helperEmail = helperEmail;
+        this.helperPhoneNumber = helperPhoneNumber;
     }
 
+    // Getters and setters for all fields
     public Long getId() {
         return id;
     }
@@ -84,12 +93,12 @@ public class RequestDto {
         this.requesterId = requesterId;
     }
 
-    public Long getHelperId() {
-        return helperId;
+    public HelperDto getHelper() {
+        return helper;
     }
 
-    public void setHelperId(Long helperId) {
-        this.helperId = helperId;
+    public void setHelper(HelperDto helper) {
+        this.helper = helper;
     }
 
     public LocalDate getPreferredDate() {
@@ -98,5 +107,37 @@ public class RequestDto {
 
     public void setPreferredDate(LocalDate preferredDate) {
         this.preferredDate = preferredDate;
+    }
+
+    public String getRequesterEmail() {
+        return requesterEmail;
+    }
+
+    public void setRequesterEmail(String requesterEmail) {
+        this.requesterEmail = requesterEmail;
+    }
+
+    public String getRequesterPhoneNumber() {
+        return requesterPhoneNumber;
+    }
+
+    public void setRequesterPhoneNumber(String requesterPhoneNumber) {
+        this.requesterPhoneNumber = requesterPhoneNumber;
+    }
+
+    public String getHelperEmail() {
+        return helperEmail;
+    }
+
+    public void setHelperEmail(String helperEmail) {
+        this.helperEmail = helperEmail;
+    }
+
+    public String getHelperPhoneNumber() {
+        return helperPhoneNumber;
+    }
+
+    public void setHelperPhoneNumber(String helperPhoneNumber) {
+        this.helperPhoneNumber = helperPhoneNumber;
     }
 }

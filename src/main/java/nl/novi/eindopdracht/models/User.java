@@ -36,15 +36,19 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-        public User() {}
+    @Column(nullable = true)
+    private Integer rating;
 
-    public User(String username, String email, String phoneNumber, String city, String password, Role role) {
+    public User() {}
+
+    public User(String username, String email, String phoneNumber, String city, String password, Role role, Integer rating) {
         this.username = username;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.city = city;
         this.password = password;
         this.role = role;
+        this.rating = rating;
     }
 
     public Long getId() {
@@ -101,5 +105,13 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public Integer getRating() {
+        return rating != null ? rating : 0;
+    }
+
+    public void setRating(Integer rating) {
+        this.rating = rating;
     }
 }

@@ -2,6 +2,7 @@ package nl.novi.eindopdracht.services;
 
 import jakarta.transaction.Transactional;
 import nl.novi.eindopdracht.dtos.RequestDto;
+import nl.novi.eindopdracht.exceptions.ConflictException;
 import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
 import nl.novi.eindopdracht.exceptions.UnauthorizedException;
 import nl.novi.eindopdracht.mappers.RequestMapper;
@@ -41,11 +42,22 @@ public class RequestService {
         Request request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Hulpvraag niet gevonden"));
 
-        request.setHelper(helper);
+        if ("Geaccepteerd".equals(request.getStatus())) {
+            throw new ConflictException("Deze hulpvraag is al geaccepteerd.");
+        }
 
+        request.setStatus("Geaccepteerd");
+        request.setHelper(helper);
         request = requestRepository.save(request);
 
-        return requestMapper.toDto(request);
+        // Verkrijg de contactgegevens van de requester en helper
+        String requesterEmail = request.getRequester().getEmail();
+        String requesterPhoneNumber = request.getRequester().getPhoneNumber();
+        String helperEmail = request.getHelper().getEmail();
+        String helperPhoneNumber = request.getHelper().getPhoneNumber();
+
+        // Roep de aangepaste toDto-methode aan met de extra gegevens
+        return requestMapper.toDto(request, requesterEmail, requesterPhoneNumber, helperEmail, helperPhoneNumber);
     }
 
     public List<RequestDto> getAllRequestsForHelpers(String categoryName, String city, String sortByDate) {
@@ -71,17 +83,34 @@ public class RequestService {
             requests.sort((r1, r2) -> r2.getPreferredDate().compareTo(r1.getPreferredDate()));
         }
 
-        return requests.stream().map(requestMapper::toDto).collect(Collectors.toList());
+        // Pas de toDto-methode aan om de extra gegevens door te geven
+        return requests.stream().map(request -> {
+            String requesterEmail = request.getRequester().getEmail();
+            String requesterPhoneNumber = request.getRequester().getPhoneNumber();
+            String helperEmail = request.getHelper() != null ? request.getHelper().getEmail() : null;
+            String helperPhoneNumber = request.getHelper() != null ? request.getHelper().getPhoneNumber() : null;
+            return requestMapper.toDto(request, requesterEmail, requesterPhoneNumber, helperEmail, helperPhoneNumber);
+        }).collect(Collectors.toList());
     }
 
     public List<RequestDto> getRequestsForRequester(UserDetails userDetails) {
         User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(()
                 -> new ResourceNotFoundException("User niet gevonden"));
         List<Request> requests = requestRepository.findByRequester(user);
-        return requests.stream().map(requestMapper::toDto).collect(Collectors.toList());
+
+        // Pas de toDto-methode aan voor requests van de requester
+        return requests.stream().map(request -> {
+            String requesterEmail = request.getRequester().getEmail();
+            String requesterPhoneNumber = request.getRequester().getPhoneNumber();
+            String helperEmail = request.getHelper() != null ? request.getHelper().getEmail() : null;
+            String helperPhoneNumber = request.getHelper() != null ? request.getHelper().getPhoneNumber() : null;
+            return requestMapper.toDto(request, requesterEmail, requesterPhoneNumber, helperEmail, helperPhoneNumber);
+        }).collect(Collectors.toList());
     }
 
     public RequestDto updateRequest(Long id, RequestDto requestDto, UserDetails user) {
+        Category category = categoryRepository.findByName(requestDto.getCategory())
+                .orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden: " + requestDto.getCategory()));
         Request request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Request met id: " + id + " niet gevonden"));
 
@@ -94,14 +123,17 @@ public class RequestService {
         request.setDescription(requestDto.getDescription());
         request.setPreferredDate(requestDto.getPreferredDate());
         request.setCity(requestDto.getCity());
+        request.setCategory(category);
         request.setStatus(requestDto.getStatus());
 
-        Category category = categoryRepository.findByName(requestDto.getCategory())
-                .orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden: " + requestDto.getCategory()));
-        request.setCategory(category);
-
         requestRepository.save(request);
-        return requestMapper.toDto(request);
+
+        // Pas de toDto-methode aan om de contactgegevens door te geven
+        String requesterEmail = request.getRequester().getEmail();
+        String requesterPhoneNumber = request.getRequester().getPhoneNumber();
+        String helperEmail = request.getHelper() != null ? request.getHelper().getEmail() : null;
+        String helperPhoneNumber = request.getHelper() != null ? request.getHelper().getPhoneNumber() : null;
+        return requestMapper.toDto(request, requesterEmail, requesterPhoneNumber, helperEmail, helperPhoneNumber);
     }
 
     public void deleteRequest(Long id, UserDetails user) {
@@ -114,7 +146,6 @@ public class RequestService {
         requestRepository.delete(request);
     }
 
-
     public RequestDto createRequest(RequestDto requestDto, UserDetails userDetails) {
         Category category = categoryRepository.findByName(requestDto.getCategory())
                 .orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden: " + requestDto.getCategory()));
@@ -126,15 +157,26 @@ public class RequestService {
 
         request = requestRepository.save(request);
 
-        return requestMapper.toDto(request);
+        // Pas de toDto-methode aan om de contactgegevens door te geven
+        String requesterEmail = request.getRequester().getEmail();
+        String requesterPhoneNumber = request.getRequester().getPhoneNumber();
+        String helperEmail = request.getHelper() != null ? request.getHelper().getEmail() : null;
+        String helperPhoneNumber = request.getHelper() != null ? request.getHelper().getPhoneNumber() : null;
+        return requestMapper.toDto(request, requesterEmail, requesterPhoneNumber, helperEmail, helperPhoneNumber);
     }
 
     public RequestDto getRequestsById(long id, UserDetails user) {
-        Request request = requestRepository.findById(id).
-                orElseThrow(() -> new ResourceNotFoundException("Request id: " + id + " niet gevonden"));
+        Request request = requestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Request id: " + id + " niet gevonden"));
         if (!request.getRequester().getUsername().equals(user.getUsername())) {
             throw new UnauthorizedException("Je bent niet gemachtigd deze request te bekijken");
         }
-        return requestMapper.toDto(request);
+
+        // Pas de toDto-methode aan voor requests van de requester
+        String requesterEmail = request.getRequester().getEmail();
+        String requesterPhoneNumber = request.getRequester().getPhoneNumber();
+        String helperEmail = request.getHelper() != null ? request.getHelper().getEmail() : null;
+        String helperPhoneNumber = request.getHelper() != null ? request.getHelper().getPhoneNumber() : null;
+        return requestMapper.toDto(request, requesterEmail, requesterPhoneNumber, helperEmail, helperPhoneNumber);
     }
 }

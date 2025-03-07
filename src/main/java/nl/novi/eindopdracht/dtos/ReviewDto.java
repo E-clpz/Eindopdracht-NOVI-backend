@@ -5,12 +5,12 @@ public class ReviewDto {
     private Long id;
     private Long requesterId;
     private Long helperId;
-    private int rating;
+    private Integer rating;
     private String comment;
 
     public ReviewDto() {}
 
-    public ReviewDto(Long id, Long requesterId, Long helperId, int rating, String comment) {
+    public ReviewDto(Long id, Long requesterId, Long helperId, Integer rating, String comment) {
         this.id = id;
         this.requesterId = requesterId;
         this.helperId = helperId;
@@ -42,11 +42,11 @@ public class ReviewDto {
         this.helperId = helperId;
     }
 
-    public int getRating() {
+    public Integer getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(Integer rating) {
         this.rating = rating;
     }
 

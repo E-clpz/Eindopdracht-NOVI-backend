@@ -10,7 +10,6 @@ public class UserDto {
     private String phoneNumber;
     private Role role;
     private String password;
-    private Long requesterId;
 
     public UserDto() {
     }
@@ -30,17 +29,6 @@ public class UserDto {
         this.phoneNumber = phoneNumber;
         this.role = role;
         this.password = password;
-    }
-
-    public UserDto(Long id, String username, String city, String email, String phoneNumber, Role role, String password, Long requesterId) {
-        this.id = id;
-        this.username = username;
-        this.city = city;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.role = role;
-        this.password = password;
-        this.requesterId = requesterId;
     }
 
     public Long getId() {
@@ -97,14 +85,6 @@ public class UserDto {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public Long getRequesterId() {
-        return requesterId;
-    }
-
-    public void setRequesterId(Long requesterId) {
-        this.requesterId = requesterId;
     }
 }
 
