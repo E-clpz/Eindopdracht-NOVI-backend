@@ -5,9 +5,11 @@ import nl.novi.eindopdracht.repositories.CategoryRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 
 @SpringBootApplication
+@EnableScheduling
 public class EindopdrachtApplication {
 
     public static void main(String[] args) {
@@ -27,10 +29,10 @@ public class EindopdrachtApplication {
         public void run(String... args) throws Exception {
 
             if (categoryRepository.count() == 0) {
-                categoryRepository.save(new Category("Gezondheid"));
+                categoryRepository.save(new Category("Boodschappen"));
                 categoryRepository.save(new Category("Vervoer"));
                 categoryRepository.save(new Category("Gezelschap"));
-                categoryRepository.save(new Category("Winkelhulp"));
+                categoryRepository.save(new Category("Overig"));
             }
         }
     }

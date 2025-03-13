@@ -1,5 +1,6 @@
 package nl.novi.eindopdracht.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
@@ -29,6 +30,7 @@ public class User {
     @Column(nullable = false)
     private String city;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 

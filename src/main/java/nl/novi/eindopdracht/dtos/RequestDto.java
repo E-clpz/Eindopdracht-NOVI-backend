@@ -1,5 +1,7 @@
 package nl.novi.eindopdracht.dtos;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import java.time.LocalDate;
 
 public class RequestDto {
@@ -12,15 +14,14 @@ public class RequestDto {
     private Long requesterId;
     private HelperDto helper;
     private LocalDate preferredDate;
-    private String requesterEmail;
-    private String requesterPhoneNumber;
     private String helperEmail;
     private String helperPhoneNumber;
+    private String fileUrl;
 
     public RequestDto() {
     }
 
-    public RequestDto(Long id, String title, String description, String category, String status, String city, Long requesterId, HelperDto helper, LocalDate preferredDate, String requesterEmail, String requesterPhoneNumber, String helperEmail, String helperPhoneNumber) {
+    public RequestDto(Long id, String title, String description, String category, String status, String city, Long requesterId, HelperDto helper, LocalDate preferredDate, String helperEmail, String helperPhoneNumber, String fileUrl) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -30,13 +31,12 @@ public class RequestDto {
         this.requesterId = requesterId;
         this.helper = helper;
         this.preferredDate = preferredDate;
-        this.requesterEmail = requesterEmail;
-        this.requesterPhoneNumber = requesterPhoneNumber;
         this.helperEmail = helperEmail;
         this.helperPhoneNumber = helperPhoneNumber;
+        this.fileUrl = fileUrl;
+
     }
 
-    // Getters and setters for all fields
     public Long getId() {
         return id;
     }
@@ -109,22 +109,6 @@ public class RequestDto {
         this.preferredDate = preferredDate;
     }
 
-    public String getRequesterEmail() {
-        return requesterEmail;
-    }
-
-    public void setRequesterEmail(String requesterEmail) {
-        this.requesterEmail = requesterEmail;
-    }
-
-    public String getRequesterPhoneNumber() {
-        return requesterPhoneNumber;
-    }
-
-    public void setRequesterPhoneNumber(String requesterPhoneNumber) {
-        this.requesterPhoneNumber = requesterPhoneNumber;
-    }
-
     public String getHelperEmail() {
         return helperEmail;
     }
@@ -139,5 +123,13 @@ public class RequestDto {
 
     public void setHelperPhoneNumber(String helperPhoneNumber) {
         this.helperPhoneNumber = helperPhoneNumber;
+    }
+
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
     }
 }

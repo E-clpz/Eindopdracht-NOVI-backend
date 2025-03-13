@@ -21,23 +21,17 @@ public class Review {
     @JoinColumn(name = "helper_id", nullable = false)
     private User helper;
 
-    @Min(value = 1, message = "De beoordeling moet minimaal 1 zijn")
-    @Max(value = 5, message = "De beoordeling moet maximaal 5 zijn")
-    @Column(nullable = false)
+    @Min(value = 1, message = "De beoordeling moet minimaal 1 ster zijn")
+    @Max(value = 5, message = "De beoordeling mag maximaal 5 sterren zijn")
     private Integer rating;
-
-    @NotNull(message = "Review tekst mag niet leeg zijn")
-    @Column(nullable = false)
-    private String comment;
 
     public Review() {
     }
 
-    public Review(User requester, User helper, Integer rating, String comment) {
+    public Review(User requester, User helper, Integer rating) {
         this.requester = requester;
         this.helper = helper;
         this.rating = rating;
-        this.comment = comment;
     }
 
     public Long getId() {
@@ -72,11 +66,4 @@ public class Review {
         this.rating = rating;
     }
 
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
 }

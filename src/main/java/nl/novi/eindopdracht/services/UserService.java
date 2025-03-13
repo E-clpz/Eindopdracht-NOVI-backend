@@ -1,6 +1,5 @@
 package nl.novi.eindopdracht.services;
 
-import nl.novi.eindopdracht.dtos.ExtendedUserDto;
 import nl.novi.eindopdracht.dtos.UserDto;
 import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
 import nl.novi.eindopdracht.exceptions.UsernameAlreadyExistsException;

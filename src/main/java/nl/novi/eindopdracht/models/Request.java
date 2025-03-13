@@ -45,6 +45,13 @@ public class Request {
     @Column(nullable = false)
     private LocalDate preferredDate;
 
+    @Lob
+    @Column(nullable = true)
+    private byte[] file;
+
+    @Column(nullable = true)
+    private String fileName;
+
     public Request() {
     }
 
@@ -137,5 +144,21 @@ public class Request {
 
     public void setPreferredDate(LocalDate preferredDate) {
         this.preferredDate = preferredDate;
+    }
+
+    public byte[] getFile() {
+        return file;
+    }
+
+    public void setFile(byte[] file) {
+        this.file = file;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 }

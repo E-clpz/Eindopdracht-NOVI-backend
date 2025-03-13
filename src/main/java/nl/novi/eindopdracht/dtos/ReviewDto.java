@@ -6,16 +6,16 @@ public class ReviewDto {
     private Long requesterId;
     private Long helperId;
     private Integer rating;
-    private String comment;
+    private Long requestId;
 
     public ReviewDto() {}
 
-    public ReviewDto(Long id, Long requesterId, Long helperId, Integer rating, String comment) {
+    public ReviewDto(Long id, Long requesterId, Long helperId, Integer rating, Long requestId) {
         this.id = id;
         this.requesterId = requesterId;
         this.helperId = helperId;
         this.rating = rating;
-        this.comment = comment;
+        this.requestId = requestId;
     }
 
     public Long getId() {
@@ -50,11 +50,11 @@ public class ReviewDto {
         this.rating = rating;
     }
 
-    public String getComment() {
-        return comment;
+    public Long getRequestId() {
+        return requestId;
     }
 
-    public void setComment(String comment) {
-        this.comment = comment;
+    public void setRequestId(Long requestId) {
+        this.requestId = requestId;
     }
 }

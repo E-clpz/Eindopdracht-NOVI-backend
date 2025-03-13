@@ -49,20 +49,24 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/requests").hasAnyRole("HELPER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/requests/my").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.GET, "/api/requests/{id}").hasAnyRole("HELPER", "REQUESTER")
-                        .requestMatchers(HttpMethod.PUT, "/api/requests/{id}/reject-helper").hasRole("REQUESTER")
-                        .requestMatchers(HttpMethod.PUT, "/api/requests/{id}/accept-helper").hasRole("REQUESTER")
+
                         .requestMatchers(HttpMethod.PUT, "/api/requests/{id}").hasAnyRole("REQUESTER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/requests/**").hasAnyRole("HELPER", "REQUESTER")
                         .requestMatchers(HttpMethod.DELETE, "/api/requests/{id}").hasAnyRole("ADMIN", "REQUESTER")
                         .requestMatchers(HttpMethod.DELETE, "/api/requests/**").hasRole("REQUESTER")
 
-                        .requestMatchers(HttpMethod.POST, "/api/reviews/requester/**").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.GET, "/api/reviews/{id}").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/reviews/requester/**").hasRole("REQUESTER")
 
                         .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories/{id}").hasAnyRole("ADMIN", "REQUESTER")
                         .requestMatchers(HttpMethod.PUT, "/api/categories").hasAnyRole("ADMIN", "REQUESTER")
                         .requestMatchers(HttpMethod.PUT, "/api/categories/{id}").hasAnyRole("ADMIN", "REQUESTER")
+
+                        .requestMatchers(HttpMethod.POST, "/single/uploadDb").hasRole("REQUESTER")
+                        .requestMatchers(HttpMethod.POST, "/multiple/upload/db").hasRole("REQUESTER")
+                        .requestMatchers(HttpMethod.GET, "/downloadFromDB/**").hasRole("HELPER")
+                        .requestMatchers(HttpMethod.GET, "/getAll/db").hasAnyRole("HELPER", "ADMIN")
 
                         .anyRequest().denyAll()
                 )

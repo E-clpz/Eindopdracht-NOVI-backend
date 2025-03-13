@@ -13,7 +13,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -50,7 +52,8 @@ public class RequestController {
     @PostMapping
     public ResponseEntity<RequestDto> createRequest(
             @Valid @RequestBody RequestDto requestDto,
-            @AuthenticationPrincipal org.springframework.security.core.userdetails.User userDetails) {
+            @RequestParam(required = false) MultipartFile file,
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.User userDetails) throws IOException {
 
         if (userDetails == null) {
             throw new UnauthorizedException("Gebruiker niet gevonden");
@@ -61,13 +64,17 @@ public class RequestController {
 
         requestDto.setRequesterId(user.getId());
 
-        RequestDto createdRequest = requestService.createRequest(requestDto, userDetails);
+        RequestDto createdRequest = requestService.createRequest(requestDto, userDetails, file);
         return ResponseEntity.status(201).body(createdRequest);
     }
 
     @PutMapping("/{id}")
-    public RequestDto updateRequest(@PathVariable Long id, @Valid @RequestBody RequestDto requestDTO, @AuthenticationPrincipal UserDetails user) {
-        return requestService.updateRequest(id, requestDTO, user);
+    public RequestDto updateRequest(
+            @PathVariable Long id,
+            @Valid @RequestBody RequestDto requestDTO,
+            @RequestParam(required = false) MultipartFile file,
+            @AuthenticationPrincipal UserDetails user) throws IOException {
+        return requestService.updateRequest(id, requestDTO, file, user);
     }
 
     @PutMapping("/{id}/accept")

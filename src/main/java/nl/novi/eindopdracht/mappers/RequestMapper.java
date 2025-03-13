@@ -10,16 +10,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class RequestMapper {
 
-    public RequestDto toDto(Request request, String requesterEmail, String requesterPhoneNumber, String helperEmail, String helperPhoneNumber) {
+    public RequestDto toDto(Request request, String helperEmail, String helperPhoneNumber, String fileUrl) {
+
         HelperDto helperDto = null;
         if (request.getHelper() != null) {
             Integer rating = request.getHelper().getRating() != null ? request.getHelper().getRating() : 0;
-            helperDto = new HelperDto(request.getHelper().getUsername(), rating);
+            helperDto = new HelperDto(request.getHelper().getId(), request.getHelper().getUsername(), rating);
         }
 
-        if ("Geaccepteerd".equals(request.getStatus())) {
-            requesterEmail = request.getRequester().getEmail();
-            requesterPhoneNumber = request.getRequester().getPhoneNumber();
+        Long requesterId = request.getRequester() != null ? request.getRequester().getId() : null;
+
+        if ("Geaccepteerd".equals(request.getStatus()) && request.getHelper() != null) {
             helperEmail = request.getHelper().getEmail();
             helperPhoneNumber = request.getHelper().getPhoneNumber();
         }
@@ -31,15 +32,15 @@ public class RequestMapper {
                 request.getCategory().getName(),
                 request.getStatus(),
                 request.getCity(),
-                request.getRequester().getId(),
+                requesterId,
                 helperDto,
                 request.getPreferredDate(),
-                requesterEmail,
-                requesterPhoneNumber,
                 helperEmail,
-                helperPhoneNumber
+                helperPhoneNumber,
+                fileUrl
         );
     }
+
 
     public Request toEntity(RequestDto requestDto, Category category, User user) {
         Request request = new Request();
