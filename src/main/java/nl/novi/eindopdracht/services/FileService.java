@@ -8,6 +8,7 @@ import nl.novi.eindopdracht.models.Request;
 import nl.novi.eindopdracht.repositories.FileRepository;
 import nl.novi.eindopdracht.repositories.RequestRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -26,8 +27,8 @@ public class FileService {
     }
 
     @Transactional
-    public FileDocument uploadFile(MultipartFile file, RequestDto requestDto) throws IOException {
-        Request request = requestRepository.findById(requestDto.getId())
+    public FileDocument uploadFile(MultipartFile file, @RequestParam Long requestId) throws IOException {
+        Request request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Request niet gevonden"));
 
         FileDocument fileDocument = new FileDocument();
@@ -35,14 +36,23 @@ public class FileService {
         fileDocument.setFileType(file.getContentType());
         fileDocument.setDocFile(file.getBytes());
         fileDocument.setRequest(request);
-        return fileDocumentRepository.save(fileDocument);
+
+        if (request.getFiles() == null) {
+            request.setFiles(new ArrayList<>());
+        }
+        request.getFiles().add(fileDocument);
+
+        fileDocumentRepository.save(fileDocument);
+        requestRepository.save(request);
+
+        return fileDocument;
     }
 
     @Transactional
-    public List<FileDocument> uploadMultipleFiles(MultipartFile[] files, RequestDto requestDto) throws IOException {
+    public List<FileDocument> uploadMultipleFiles(MultipartFile[] files, @RequestParam Long requestId) throws IOException {
         List<FileDocument> fileDocuments = new ArrayList<>();
         for (MultipartFile file : files) {
-            fileDocuments.add(uploadFile(file, requestDto));
+            fileDocuments.add(uploadFile(file, requestId));
         }
         return fileDocuments;
     }

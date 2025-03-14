@@ -5,6 +5,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "requests")
@@ -51,6 +52,12 @@ public class Request {
 
     @Column(nullable = true)
     private String fileName;
+
+    @Column(nullable = true)
+    private String fileType;
+
+    @OneToMany(mappedBy = "request", cascade = CascadeType.ALL)
+    private List<FileDocument> files;
 
     public Request() {
     }
@@ -160,5 +167,15 @@ public class Request {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public void setFileType(String contentType) {
+    }
+    public List<FileDocument> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<FileDocument> files) {
+        this.files = files;
     }
 }

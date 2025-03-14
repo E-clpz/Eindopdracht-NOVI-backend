@@ -78,7 +78,9 @@ public class RequestController {
     }
 
     @PutMapping("/{id}/accept")
-    public ResponseEntity<RequestDto> acceptRequest(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<RequestDto> acceptRequest(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
         User helper = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new UnauthorizedException("Helper niet gevonden"));
 
@@ -88,7 +90,9 @@ public class RequestController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRequest(@PathVariable Long id, @AuthenticationPrincipal UserDetails user) {
+    public ResponseEntity<Void> deleteRequest(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails user) {
         requestService.deleteRequest(id, user);
         return ResponseEntity.noContent().build();
     }

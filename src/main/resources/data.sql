@@ -1,6 +1,14 @@
 DELETE FROM requests;
 DELETE FROM users;
 
+ALTER TABLE file_document
+DROP CONSTRAINT fk5n235o55u3k4rydwb5t5sl5am;
+
+ALTER TABLE file_document
+    ADD CONSTRAINT fk5n235o55u3k4rydwb5t5sl5am
+        FOREIGN KEY (request_id) REFERENCES requests(id)
+            ON DELETE CASCADE;
+
 ALTER SEQUENCE users_id_seq RESTART WITH 1;
 
 INSERT INTO users (username, email, phone_number, city, password, role)

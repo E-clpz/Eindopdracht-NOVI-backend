@@ -39,7 +39,8 @@ public class FileController {
             throw new RuntimeException("Hulpvraag niet gevonden");
         }
 
-        FileDocument fileDocument = fileService.uploadFile(file, requestDto);
+        FileDocument fileDocument = fileService.uploadFile(file, requestId);
+
         String url = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/downloadFromDB/")
                 .path(Objects.requireNonNull(file.getOriginalFilename()))
@@ -69,7 +70,7 @@ public class FileController {
             throw new RuntimeException("Hulpvraag niet gevonden");
         }
 
-        List<FileDocument> fileDocuments = fileService.uploadMultipleFiles(files, requestDto);
+        List<FileDocument> fileDocuments = fileService.uploadMultipleFiles(files, requestId);
 
         List<FileUploadResponse> fileUploadResponses = new ArrayList<>();
         for (FileDocument fileDocument : fileDocuments) {
