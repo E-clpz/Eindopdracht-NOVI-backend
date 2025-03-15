@@ -7,11 +7,9 @@ import nl.novi.eindopdracht.exceptions.InvalidFileException;
 import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
 import nl.novi.eindopdracht.exceptions.UnauthorizedException;
 import nl.novi.eindopdracht.mappers.RequestMapper;
-import nl.novi.eindopdracht.models.Category;
-import nl.novi.eindopdracht.models.Request;
-import nl.novi.eindopdracht.models.Role;
-import nl.novi.eindopdracht.models.User;
+import nl.novi.eindopdracht.models.*;
 import nl.novi.eindopdracht.repositories.CategoryRepository;
+import nl.novi.eindopdracht.repositories.FileRepository;
 import nl.novi.eindopdracht.repositories.RequestRepository;
 import nl.novi.eindopdracht.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +17,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,13 +30,15 @@ public class RequestService {
     private final CategoryRepository categoryRepository;
     private final RequestMapper requestMapper;
     private final UserRepository userRepository;
+    private final FileRepository fileRepository;
 
     @Autowired
-    public RequestService(RequestRepository requestRepository, CategoryRepository categoryRepository, RequestMapper requestMapper, UserRepository userRepository) {
+    public RequestService(RequestRepository requestRepository, CategoryRepository categoryRepository, RequestMapper requestMapper, UserRepository userRepository, FileRepository fileRepository) {
         this.requestRepository = requestRepository;
         this.categoryRepository = categoryRepository;
         this.requestMapper = requestMapper;
         this.userRepository = userRepository;
+        this.fileRepository = fileRepository;
     }
 
     @Transactional
@@ -58,7 +59,7 @@ public class RequestService {
 
         String fileUrl = null;
         if (request.getFile() != null) {
-            fileUrl = "/api/files/downloadFromDB/" + request.getFileName();
+            fileUrl = request.getFile().getFileUrl();
         }
 
         return requestMapper.toDto(request, helperEmail, helperPhoneNumber, fileUrl);
@@ -93,7 +94,7 @@ public class RequestService {
 
             String fileUrl = null;
             if (request.getFile() != null) {
-                fileUrl = "/api/files/downloadFromDB/" + request.getId();
+                fileUrl = request.getFile().getFileUrl();
             }
 
             return requestMapper.toDto(request, helperEmail, helperPhoneNumber, fileUrl);
@@ -116,13 +117,14 @@ public class RequestService {
 
             String fileUrl = null;
             if (request.getFile() != null) {
-                fileUrl = "/api/files/downloadFromDB/" + request.getId();
+                fileUrl = request.getFile().getFileUrl();
             }
 
             return requestMapper.toDto(request, helperEmail, helperPhoneNumber, fileUrl);
         }).collect(Collectors.toList());
     }
 
+    @Transactional
     public RequestDto updateRequest(Long id, RequestDto requestDto, MultipartFile file, UserDetails user) throws IOException {
         Category category = categoryRepository.findByName(requestDto.getCategory())
                 .orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden: " + requestDto.getCategory()));
@@ -147,6 +149,7 @@ public class RequestService {
 
         if (file != null && !file.isEmpty()) {
             String contentType = file.getContentType();
+
             if (contentType != null && !(contentType.startsWith("image/") || contentType.equals("audio/mp3") || contentType.equals("application/pdf"))) {
                 throw new InvalidFileException("Alleen afbeeldingsbestanden, MP3's en PDF-bestanden worden geaccepteerd. Bestandstype: " + contentType);
             }
@@ -156,23 +159,32 @@ public class RequestService {
             }
 
             byte[] fileBytes = file.getBytes();
-            request.setFile(fileBytes);
-            request.setFileName(file.getOriginalFilename());
-            request.setFileType(contentType);
+
+            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/api/files/downloadFromDB/")
+                    .path(file.getOriginalFilename())
+                    .toUriString();
+
+            FileDocument fileDocument = new FileDocument(file.getOriginalFilename(), fileBytes, contentType, request, fileUrl);
+            fileRepository.save(fileDocument);
+
+            request.setFile(fileDocument);
         }
+
         requestRepository.save(request);
 
         String helperEmail = request.getHelper() != null ? request.getHelper().getEmail() : null;
         String helperPhoneNumber = request.getHelper() != null ? request.getHelper().getPhoneNumber() : null;
 
         String fileUrl = null;
-        if (request.getFile() != null) {
-            fileUrl = "/api/files/downloadFromDB/" + request.getId();
+        FileDocument fileDocument = request.getFile();
+
+        if (fileDocument != null) {
+            fileUrl = fileDocument.getFileUrl();
         }
 
         return requestMapper.toDto(request, helperEmail, helperPhoneNumber, fileUrl);
     }
-
 
     public void deleteRequest(Long id, UserDetails user) {
         Request request = requestRepository.findById(id)
@@ -199,17 +211,20 @@ public class RequestService {
         if (file != null && !file.isEmpty()) {
             String contentType = file.getContentType();
             if (contentType != null &&
-                    !(contentType.startsWith("image/") || contentType.equals("audio/mp3") || contentType.equals("application/pdf"))) {
-                throw new InvalidFileException("Alleen afbeeldingsbestanden, MP3's en PDF-bestanden worden geaccepteerd.");
+                    !(contentType.startsWith("image/") || contentType.equals("application/pdf"))) {
+                throw new InvalidFileException("Alleen afbeeldingsbestanden en PDF-bestanden worden geaccepteerd.");
             }
 
             if (file.getSize() > 5 * 1024 * 1024) {
-                throw new InvalidFileException("Bestand is te groot. De limiet is 5 MB.");
+                throw new InvalidFileException("Bestand mag maximaal 5 MB groot zijn");
             }
 
-            byte[] fileBytes = file.getBytes();
-            request.setFile(fileBytes);
-            request.setFileName(file.getOriginalFilename());
+            FileDocument fileDocument = new FileDocument();
+            fileDocument.setFileData(file.getBytes());
+            fileDocument.setFileName(file.getOriginalFilename());
+            fileDocument.setRequest(request);
+
+            fileRepository.save(fileDocument);
         }
 
         request = requestRepository.save(request);

@@ -2,31 +2,38 @@ package nl.novi.eindopdracht.models;
 
 import jakarta.persistence.*;
 
-import java.io.Serializable;
-
 @Entity
-public class FileDocument implements Serializable {
-
+public class FileDocument {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String fileName;
-    private String fileType;
 
     @Lob
-    private byte[] docFile;
+    private byte[] fileData;
 
-    @ManyToOne
+    private String contentType;
+
+    private String fileUrl;
+
+    @OneToOne
     @JoinColumn(name = "request_id")
     private Request request;
 
-    public Long getId() {
-        return id;
+    public FileDocument() {
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public FileDocument(String fileName, byte[] fileData, String contentType, Request request, String fileUrl) {
+        this.fileName = fileName;
+        this.fileData = fileData;
+        this.contentType = contentType;
+        this.request = request;
+        this.fileUrl = fileUrl;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public String getFileName() {
@@ -37,20 +44,20 @@ public class FileDocument implements Serializable {
         this.fileName = fileName;
     }
 
-    public String getFileType() {
-        return fileType;
+    public byte[] getFileData() {
+        return fileData;
     }
 
-    public void setFileType(String fileType) {
-        this.fileType = fileType;
+    public void setFileData(byte[] fileData) {
+        this.fileData = fileData;
     }
 
-    public byte[] getDocFile() {
-        return docFile;
+    public String getContentType() {
+        return contentType;
     }
 
-    public void setDocFile(byte[] docFile) {
-        this.docFile = docFile;
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
     }
 
     public Request getRequest() {
@@ -59,5 +66,12 @@ public class FileDocument implements Serializable {
 
     public void setRequest(Request request) {
         this.request = request;
+    }
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
     }
 }

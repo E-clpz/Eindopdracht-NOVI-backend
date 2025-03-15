@@ -39,38 +39,27 @@ public class Request {
     @JoinColumn(name = "helper_id")
     private User helper;
 
-    @Column(nullable = false, updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
     @Column(nullable = false)
     private LocalDate preferredDate;
-
-    @Lob
-    @Column(nullable = true)
-    private byte[] file;
 
     @Column(nullable = true)
     private String fileName;
 
-    @Column(nullable = true)
-    private String fileType;
-
-    @OneToMany(mappedBy = "request", cascade = CascadeType.ALL)
-    private List<FileDocument> files;
+    @OneToOne(mappedBy = "request", cascade = CascadeType.ALL)
+    private FileDocument file;
 
     public Request() {
     }
 
-    public Request(String title, String description, Category category, String status, String city, User requester, LocalDate preferredDate) {
+    public Request(String title, String description, Category category, String status, String city, User requester, LocalDate preferredDate, String fileName) {
         this.title = title;
         this.description = description;
         this.category = category;
         this.status = status;
         this.city = city;
         this.requester = requester;
-        this.createdAt = LocalDateTime.now();
         this.preferredDate = preferredDate;
+        this.fileName = fileName;
     }
 
     public Long getId() {
@@ -137,28 +126,12 @@ public class Request {
         this.helper = helper;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public LocalDate getPreferredDate() {
         return preferredDate;
     }
 
     public void setPreferredDate(LocalDate preferredDate) {
         this.preferredDate = preferredDate;
-    }
-
-    public byte[] getFile() {
-        return file;
-    }
-
-    public void setFile(byte[] file) {
-        this.file = file;
     }
 
     public String getFileName() {
@@ -169,13 +142,11 @@ public class Request {
         this.fileName = fileName;
     }
 
-    public void setFileType(String contentType) {
-    }
-    public List<FileDocument> getFiles() {
-        return files;
+    public FileDocument getFile() {
+        return file;
     }
 
-    public void setFiles(List<FileDocument> files) {
-        this.files = files;
+    public void setFile(FileDocument file) {
+        this.file = file;
     }
 }

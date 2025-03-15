@@ -14,8 +14,7 @@ public class RequestMapper {
 
         HelperDto helperDto = null;
         if (request.getHelper() != null) {
-            Integer rating = request.getHelper().getRating() != null ? request.getHelper().getRating() : 0;
-            helperDto = new HelperDto(request.getHelper().getId(), request.getHelper().getUsername(), rating);
+            helperDto = new HelperDto(request.getHelper().getId(), request.getHelper().getUsername());
         }
 
         Long requesterId = request.getRequester() != null ? request.getRequester().getId() : null;
@@ -41,16 +40,16 @@ public class RequestMapper {
         );
     }
 
-
     public Request toEntity(RequestDto requestDto, Category category, User user) {
-        Request request = new Request();
-        request.setTitle(requestDto.getTitle());
-        request.setDescription(requestDto.getDescription());
-        request.setCategory(category);
-        request.setCity(requestDto.getCity());
-        request.setPreferredDate(requestDto.getPreferredDate());
-        request.setRequester(user);
-
-        return request;
+        return new Request(
+                requestDto.getTitle(),
+                requestDto.getDescription(),
+                category,
+                "Open",
+                requestDto.getCity(),
+                user,
+                requestDto.getPreferredDate(),
+                null
+        );
     }
 }

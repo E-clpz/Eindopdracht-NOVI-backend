@@ -2,7 +2,6 @@ package nl.novi.eindopdracht.controllers;
 
 import nl.novi.eindopdracht.dtos.UserDto;
 import nl.novi.eindopdracht.models.User;
-import nl.novi.eindopdracht.services.JwtService;
 import nl.novi.eindopdracht.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,12 +18,10 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
-    private final JwtService jwtService;
 
     @Autowired
-    public UserController(UserService userService, JwtService jwtService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.jwtService = jwtService;
     }
 
     @GetMapping

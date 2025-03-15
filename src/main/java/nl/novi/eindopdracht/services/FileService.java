@@ -2,6 +2,7 @@ package nl.novi.eindopdracht.services;
 
 import jakarta.transaction.Transactional;
 import nl.novi.eindopdracht.dtos.RequestDto;
+import nl.novi.eindopdracht.exceptions.ConflictException;
 import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
 import nl.novi.eindopdracht.models.FileDocument;
 import nl.novi.eindopdracht.models.Request;
@@ -10,6 +11,7 @@ import nl.novi.eindopdracht.repositories.RequestRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,28 +35,27 @@ public class FileService {
 
         FileDocument fileDocument = new FileDocument();
         fileDocument.setFileName(file.getOriginalFilename());
-        fileDocument.setFileType(file.getContentType());
-        fileDocument.setDocFile(file.getBytes());
+        fileDocument.setContentType(file.getContentType());
+        fileDocument.setFileData(file.getBytes());
         fileDocument.setRequest(request);
 
-        if (request.getFiles() == null) {
-            request.setFiles(new ArrayList<>());
+        if (request.getFile() != null) {
+            fileDocumentRepository.delete(request.getFile());
         }
-        request.getFiles().add(fileDocument);
+
+        String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/downloadFromDB/")
+                .path(fileDocument.getFileName())
+                .toUriString();
+
+        fileDocument.setFileUrl(fileUrl);
 
         fileDocumentRepository.save(fileDocument);
+        request.setFile(fileDocument);
+
         requestRepository.save(request);
 
         return fileDocument;
-    }
-
-    @Transactional
-    public List<FileDocument> uploadMultipleFiles(MultipartFile[] files, @RequestParam Long requestId) throws IOException {
-        List<FileDocument> fileDocuments = new ArrayList<>();
-        for (MultipartFile file : files) {
-            fileDocuments.add(uploadFile(file, requestId));
-        }
-        return fileDocuments;
     }
 
     @Transactional

@@ -8,12 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
@@ -34,9 +37,7 @@ public class AuthController {
     public ResponseEntity<String> registerUser(@RequestBody UserDto userDto) {
         try {
             String token = authService.registerUser(userDto);
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                    .body("Gebruiker geregistreerd en token gegenereerd");
+            return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, "Bearer " + token).body("Gebruiker geregistreerd en token gegenereerd");
         } catch (Exception ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -44,17 +45,14 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody UserLoginRequestDTO userLoginRequestDTO) {
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(userLoginRequestDTO.getUserName(), userLoginRequestDTO.getPassword());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userLoginRequestDTO.getUserName(), userLoginRequestDTO.getPassword());
 
         try {
             Authentication auth = authenticationManager.authenticate(authenticationToken);
             UserDetails userDetails = (UserDetails) auth.getPrincipal();
             String token = jwtService.generateToken(userDetails, 1000 * 60 * 60 * 24 * 10L);
 
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                    .body("Token gegenereerd");
+            return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, "Bearer " + token).body("Token gegenereerd");
         } catch (AuthenticationException ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
         }

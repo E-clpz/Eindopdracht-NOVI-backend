@@ -9,5 +9,4 @@ class EindopdrachtApplicationTests {
     @Test
     void contextLoads() {
     }
-
 }
