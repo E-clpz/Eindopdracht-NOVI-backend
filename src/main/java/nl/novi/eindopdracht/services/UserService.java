@@ -1,10 +1,13 @@
 package nl.novi.eindopdracht.services;
 
+import nl.novi.eindopdracht.dtos.CreateUserDto;
 import nl.novi.eindopdracht.dtos.UserDto;
+import nl.novi.eindopdracht.exceptions.ConflictException;
 import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
-import nl.novi.eindopdracht.exceptions.UsernameAlreadyExistsException;
+import nl.novi.eindopdracht.models.Request;
 import nl.novi.eindopdracht.models.Role;
 import nl.novi.eindopdracht.models.User;
+import nl.novi.eindopdracht.repositories.RequestRepository;
 import nl.novi.eindopdracht.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,91 +20,125 @@ import java.util.Optional;
 @Service
 public class UserService {
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final RequestRepository requestRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, RequestRepository requestRepository) {
         this.userRepository = userRepository;
+        this.requestRepository = requestRepository;
     }
 
-    public UserDto getUserDto(UserDetails userDetails, boolean isAdmin, boolean isRequesterAccepted) {
+    public UserDto getUserDto(UserDetails userDetails, boolean isAdmin) {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User niet gevonden"));
 
         boolean isSelf = user.getUsername().equals(userDetails.getUsername());
 
-        if (isAdmin || isRequesterAccepted || isSelf) {
-            return new UserDto(user.getId(), user.getUsername(), user.getCity(), user.getEmail(), user.getPhoneNumber(), user.getRole(), user.getPassword());
+        if (isAdmin || isSelf) {
+            return new UserDto(user.getId(), user.getUsername(), user.getCity(), user.getEmail(), user.getPhoneNumber(), user.getRole());
         } else {
-            return new UserDto(user.getId(), user.getUsername(), user.getCity(), user.getRole());
+            return new UserDto(user.getId(), user.getUsername(), user.getCity());
         }
     }
 
     private boolean isValidPassword(String password) {
-        String passwordPattern = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$";
+        String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$";
         boolean isValid = password.matches(passwordPattern);
         if (!isValid) {
-            System.out.println("Fout wachtwoord: " + password);
+            System.out.println("Fout wachtwoord: Wachtwoord moet minimaal 8 tekens bevatten, " +
+                    "met ten minste één kleine letter, één hoofdletter, één cijfer en " +
+                    "één speciaal teken (@#$%^&+=!).");
         }
         return isValid;
     }
 
-    public UserDto createUser(UserDto userDto) {
-        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
-            throw new UsernameAlreadyExistsException("Gebruikersnaam is al in gebruik");
+    public CreateUserDto createUser(CreateUserDto createUserDto) {
+        if (userRepository.existsByUsername(createUserDto.getUsername())) {
+            throw new ConflictException("Gebruikersnaam is al in gebruik");
         }
 
-        if (userRepository.existsByEmail(userDto.getEmail())) {
-            throw new IllegalArgumentException("E-mailadres is al in gebruik.");
-        }
-        if (!isValidPassword(userDto.getPassword())) {
-            throw new IllegalArgumentException("Wachtwoord moet minimaal 8 tekens lang zijn en minstens 1 hoofdletter, 1 cijfer en 1 speciaal teken bevatten.");
+        if (userRepository.existsByEmail(createUserDto.getEmail())) {
+            throw new ConflictException("E-mailadres is al in gebruik.");
         }
 
-        Role role = userDto.getRole();
+        if (userRepository.existsByPhoneNumber(createUserDto.getPhoneNumber())) {
+            throw new ConflictException("Telefoonnummer is al in gebruik.");
+        }
+
+        if (!isValidPassword(createUserDto.getPassword())) {
+            throw new IllegalArgumentException("Wachtwoord moet minimaal 8 tekens lang zijn en minstens 1 kleine letter, 1 hoofdletter, 1 cijfer en 1 speciaal teken bevatten.");
+        }
+
+        Role role = createUserDto.getRole();
+
         User user = new User();
-        user.setUsername(userDto.getUsername());
-        user.setCity(userDto.getCity());
-        user.setEmail(userDto.getEmail());
-        user.setPhoneNumber(userDto.getPhoneNumber());
+        user.setUsername(createUserDto.getUsername());
+        user.setCity(createUserDto.getCity());
+        user.setEmail(createUserDto.getEmail());
+        user.setPhoneNumber(createUserDto.getPhoneNumber());
         user.setRole(role);
-        user.setPassword(new BCryptPasswordEncoder().encode(userDto.getPassword()));
+        user.setPassword(new BCryptPasswordEncoder().encode(createUserDto.getPassword()));
 
         User savedUser = userRepository.save(user);
 
-        return new UserDto(savedUser.getId(), savedUser.getUsername(), savedUser.getCity(), savedUser.getEmail(), savedUser.getPhoneNumber(), savedUser.getRole(), savedUser.getPassword());
+        return new CreateUserDto(savedUser.getId(), savedUser.getUsername(), savedUser.getCity(), savedUser.getEmail(), savedUser.getPhoneNumber(), savedUser.getRole(), null);
     }
 
     public UserDto updateUser(Long id, UserDto userDto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Gebruiker niet gevonden"));
 
-        if (!user.getUsername().equals(userDto.getUsername()) &&
-                userRepository.findByUsername(userDto.getUsername()).isPresent()) {
-            throw new UsernameAlreadyExistsException("Gebruikersnaam is al in gebruik.");
+        if (userDto.getUsername() != null && !user.getUsername().equals(userDto.getUsername()) &&
+                userRepository.existsByUsername(userDto.getUsername())) {
+            throw new ConflictException("Gebruikersnaam is al in gebruik.");
         }
 
-        if (!user.getEmail().equals(userDto.getEmail()) &&
+        if (userDto.getEmail() != null && !user.getEmail().equals(userDto.getEmail()) &&
                 userRepository.existsByEmail(userDto.getEmail())) {
-            throw new IllegalArgumentException("E-mailadres is al in gebruik.");
+            throw new ConflictException("E-mailadres is al in gebruik.");
         }
 
-        user.setUsername(userDto.getUsername());
-        user.setCity(userDto.getCity());
-        user.setEmail(userDto.getEmail());
-        user.setPhoneNumber(userDto.getPhoneNumber());
-        user.setRole(userDto.getRole());
+        if (userDto.getPhoneNumber() != null && !user.getPhoneNumber().equals(userDto.getPhoneNumber()) &&
+                userRepository.existsByPhoneNumber(userDto.getPhoneNumber())) {
+            throw new ConflictException("Telefoonnummer is al in gebruik.");
+        }
 
-        if (userDto.getPassword() != null && !userDto.getPassword().isEmpty()) {
-            if (!isValidPassword(userDto.getPassword())) {
-                throw new IllegalArgumentException("Wachtwoord moet minimaal 8 tekens lang zijn en minstens 1 hoofdletter, 1 cijfer en 1 speciaal teken bevatten.");
-            }
-            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        if (userDto.getUsername() != null) {
+            user.setUsername(userDto.getUsername());
+        }
+        if (userDto.getCity() != null) {
+            user.setCity(userDto.getCity());
+        }
+        if (userDto.getEmail() != null) {
+            user.setEmail(userDto.getEmail());
+        }
+        if (userDto.getPhoneNumber() != null) {
+            user.setPhoneNumber(userDto.getPhoneNumber());
         }
 
         User updatedUser = userRepository.save(user);
+
         return new UserDto(updatedUser.getId(), updatedUser.getUsername(), updatedUser.getCity(),
-                updatedUser.getEmail(), updatedUser.getPhoneNumber(), updatedUser.getRole(), updatedUser.getPassword());
+                updatedUser.getEmail(), updatedUser.getPhoneNumber(), updatedUser.getRole());
+    }
+
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Gebruiker niet gevonden"));
+
+        List<Request> requests = requestRepository.findByRequester(user);
+        requests.addAll(requestRepository.findByHelper(user));
+
+        for (Request request : requests) {
+            if (request.getHelper() != null && request.getHelper().equals(user)) {
+                request.setHelper(null);
+            }
+        }
+
+        requestRepository.saveAll(requests);
+
+        requestRepository.deleteAll(requestRepository.findByRequester(user));
+
+        userRepository.delete(user);
     }
 
     public List<User> getAllUsers() {
@@ -118,9 +155,5 @@ public class UserService {
 
     public Optional<User> getUserById(Long id) {
         return userRepository.findById(id);
-    }
-
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
     }
 }

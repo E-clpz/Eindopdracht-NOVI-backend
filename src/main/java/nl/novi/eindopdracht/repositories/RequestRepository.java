@@ -13,6 +13,7 @@ import java.util.Optional;
 public interface RequestRepository extends JpaRepository<Request, Long> {
     List<Request> findByCategory(Category category);
     List<Request> findByRequester(User requester);
+    List<Request> findByHelper(User helper);
     Optional<Request> findById(Long id);
     Optional<Request> findByRequesterIdAndHelperId(Long requesterId, Long helperId);
 }

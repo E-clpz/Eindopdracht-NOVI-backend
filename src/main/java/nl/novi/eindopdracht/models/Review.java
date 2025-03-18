@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.Cascade;
 
 @Entity
 @Table(name = "reviews")
@@ -15,10 +16,12 @@ public class Review {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requester_id", nullable = false)
+    @Cascade(org.hibernate.annotations.CascadeType.REMOVE)
     private User requester;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "helper_id", nullable = false)
+    @Cascade(org.hibernate.annotations.CascadeType.REMOVE)
     private User helper;
 
     @Min(value = 1, message = "De beoordeling moet minimaal 1 ster zijn")

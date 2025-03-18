@@ -1,7 +1,5 @@
 package nl.novi.eindopdracht.dtos;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import java.time.LocalDate;
 
 public class RequestDto {

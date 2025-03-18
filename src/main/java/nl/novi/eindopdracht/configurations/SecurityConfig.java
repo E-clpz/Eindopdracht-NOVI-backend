@@ -1,5 +1,6 @@
 package nl.novi.eindopdracht.configurations;
 
+import jakarta.servlet.http.HttpServletRequest;
 import nl.novi.eindopdracht.services.JwtService;
 import nl.novi.eindopdracht.services.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +17,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -64,9 +68,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/categories/{id}").hasAnyRole("ADMIN", "REQUESTER")
 
                         .requestMatchers(HttpMethod.POST, "/single/uploadDb").hasRole("REQUESTER")
-                        .requestMatchers(HttpMethod.POST, "/multiple/upload/db").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.GET, "/downloadFromDB/**").hasRole("HELPER")
-                        .requestMatchers(HttpMethod.GET, "/getAll/db").hasAnyRole("HELPER", "ADMIN")
 
                         .anyRequest().denyAll()
                 )
@@ -90,6 +92,11 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public MultipartResolver multipartResolver() {
+        return new StandardServletMultipartResolver();
     }
 
     @Bean

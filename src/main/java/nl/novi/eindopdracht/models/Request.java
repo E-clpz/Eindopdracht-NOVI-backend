@@ -1,11 +1,10 @@
 package nl.novi.eindopdracht.models;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.CreationTimestamp;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "requests")
@@ -16,9 +15,13 @@ public class Request {
     private Long id;
 
     @Column(nullable = false, length = 30)
+    @NotNull(message = "Titel mag niet leeg zijn")
+    @Size(min = 3, max = 30, message = "Titel moet tussen de 3 and 30 tekens bevatten")
     private String title;
 
     @Column(nullable = false, length = 250)
+    @NotNull(message = "Omschrijving mag niet leeg zijn")
+    @Size(min = 10, max = 250, message = "Gebruik tussen de 10 en 250 tekens")
     private String description;
 
     @ManyToOne
@@ -32,7 +35,7 @@ public class Request {
     private String city;
 
     @ManyToOne
-    @JoinColumn(name = "requester_id", nullable = false)
+    @JoinColumn(name = "requester_id", nullable = true)
     private User requester;
 
     @ManyToOne(optional = true)

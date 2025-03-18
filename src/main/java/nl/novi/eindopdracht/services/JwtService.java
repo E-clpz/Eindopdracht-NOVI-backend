@@ -27,25 +27,28 @@ public class JwtService {
     private String AUDIENCE;
 
     private String ROLES_CLAIMS_NAME = "roles";
+    private String USER_ID_CLAIMS_NAME = "userId";
 
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(UserDetails userDetails, Long milliSeconds) {
+    public String generateToken(UserDetails userDetails, Long userId, Long milliSeconds) {
         Map<String, Object> claims = new HashMap<>();
+
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
         claims.put(ROLES_CLAIMS_NAME, roles);
+        claims.put(USER_ID_CLAIMS_NAME, userId);
 
         long currentTime = System.currentTimeMillis();
         return createToken(claims, userDetails.getUsername(), currentTime, milliSeconds);
     }
 
     public Long extractUserId(String token) {
-        return Long.parseLong(extractClaim(token, Claims::getSubject));
+        return Long.valueOf(extractClaim(token, claims -> claims.get(USER_ID_CLAIMS_NAME).toString()));
     }
 
     private String createToken(Map<String, Object> claims, String subject, long currentTime, long validPeriod) {
@@ -67,10 +70,6 @@ public class JwtService {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
-    }
-
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
     }
 
     public List<GrantedAuthority> extractRoles(String jwt) {

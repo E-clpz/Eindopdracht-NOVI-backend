@@ -1,6 +1,7 @@
 package nl.novi.eindopdracht.services;
 
-import nl.novi.eindopdracht.dtos.UserDto;
+import nl.novi.eindopdracht.dtos.CreateUserDto;
+import nl.novi.eindopdracht.exceptions.ConflictException;
 import nl.novi.eindopdracht.models.User;
 import nl.novi.eindopdracht.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,23 +25,27 @@ public class AuthService {
         this.userDetailsService = userDetailsService;
     }
 
-    public String registerUser(UserDto userDto) {
-        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
-            throw new IllegalArgumentException("Gebruikersnaam bestaat al!");
+    public String registerUser(CreateUserDto createUserDto) {
+        if (userRepository.findByUsername(createUserDto.getUsername()).isPresent()) {
+            throw new ConflictException("Gebruikersnaam bestaat al!");
         }
 
         User newUser = new User();
-        newUser.setUsername(userDto.getUsername());
-        newUser.setEmail(userDto.getEmail());
-        newUser.setPhoneNumber(userDto.getPhoneNumber());
-        newUser.setCity(userDto.getCity());
-        newUser.setRole(userDto.getRole());
-        newUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        newUser.setUsername(createUserDto.getUsername());
+        newUser.setEmail(createUserDto.getEmail());
+        newUser.setPhoneNumber(createUserDto.getPhoneNumber());
+        newUser.setCity(createUserDto.getCity());
+        newUser.setRole(createUserDto.getRole());
+
+        newUser.setPassword(passwordEncoder.encode(createUserDto.getPassword()));
 
         userRepository.save(newUser);
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(newUser.getUsername());
-        return jwtService.generateToken(userDetails, 1000 * 60 * 60 * 24 * 10L);
+
+        Long userId = newUser.getId();
+
+        return jwtService.generateToken(userDetails, userId, 1000 * 60 * 60 * 24 * 10L);
     }
 }
 

@@ -1,8 +1,9 @@
 package nl.novi.eindopdracht.controllers;
 
+import nl.novi.eindopdracht.exceptions.ConflictException;
+import nl.novi.eindopdracht.exceptions.InvalidFileException;
 import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
 import nl.novi.eindopdracht.exceptions.UnauthorizedException;
-import nl.novi.eindopdracht.exceptions.UsernameAlreadyExistsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -28,10 +29,17 @@ public class ExceptionController {
         return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler(UsernameAlreadyExistsException.class)
-    public ResponseEntity<Map<String, String>> handleUsernameAlreadyExistsException(UsernameAlreadyExistsException ex) {
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Map<String, String>> handleConflictException(ConflictException ex) {
         Map<String, String> response = new HashMap<>();
         response.put("error", ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidFileException(InvalidFileException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }

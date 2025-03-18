@@ -30,9 +30,7 @@ public class RequestController {
     public List<RequestDto> getAllRequestsForHelpers(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String city,
-            @RequestParam(required = false) String sortByDate)
-             {
-
+            @RequestParam(required = false) String sortByDate) {
         return requestService.getAllRequestsForHelpers(category, city, sortByDate);
     }
 
@@ -80,9 +78,7 @@ public class RequestController {
             @AuthenticationPrincipal UserDetails userDetails) {
         User helper = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new UnauthorizedException("Helper niet gevonden"));
-
         RequestDto updatedRequest = requestService.acceptRequest(id, helper);
-
         return ResponseEntity.ok(updatedRequest);
     }
 

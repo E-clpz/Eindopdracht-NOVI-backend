@@ -50,7 +50,7 @@ public class FileUploadIntegrationTest {
     @Test
     public void testFileUploadAndLinkToRequest() throws Exception {
 
-        String token = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJST0xFX1JFUVVFU1RFUiJdLCJhdWQiOiJlaW5kb3BkcmFjaHQtYXBpLmNvbSIsInN1YiI6InJlcXVlc3RlciIsImlhdCI6MTc0MTg2NjA3MiwiZXhwIjoxNzQyNzMwMDcyfQ.oFFIN5xuF-8zQzh1A2it6XOm1DVp-hpcFdTyHUqrwjY";
+        String token = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJST0xFX1JFUVVFU1RFUiJdLCJ1c2VySWQiOjEsImF1ZCI6ImVpbmRvcGRyYWNodC1hcGkuY29tIiwic3ViIjoicmVxdWVzdGVyIiwiaWF0IjoxNzQyMTU0NzM0LCJleHAiOjE3NDMwMTg3MzR9.sQaWuLa6m47pwoL8vYBfQ67doVw2SGqeByQo4N0Rmqc";
 
         Category category = categoryRepository.findById(1L).orElseThrow(() -> new RuntimeException("Category not found"));
         User requester = userRepository.findById(1L).orElseThrow(() -> new RuntimeException("User not found"));

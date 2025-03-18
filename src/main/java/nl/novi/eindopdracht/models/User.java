@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +17,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 25)
+    @Column(nullable = false, length = 25, unique = true)
+    @Size(min = 2, max = 25, message = "Gebruikersnaam mag niet leeg zijn")
     private String username;
 
     @Email(message = "Ongeldig e-mailadres")
@@ -24,7 +26,7 @@ public class User {
     private String email;
 
     @Pattern(regexp = "^[0-9]{10}$", message = "Telefoonnummer moet precies 10 cijfers bevatten")
-    @Column(nullable = false, length = 10)
+    @Column(nullable = false, length = 10, unique = true)
     private String phoneNumber;
 
     @Column(nullable = false)

@@ -1,8 +1,6 @@
 package nl.novi.eindopdracht.services;
 
 import jakarta.transaction.Transactional;
-import nl.novi.eindopdracht.dtos.RequestDto;
-import nl.novi.eindopdracht.exceptions.ConflictException;
 import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
 import nl.novi.eindopdracht.models.FileDocument;
 import nl.novi.eindopdracht.models.Request;
@@ -14,8 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class FileService {
@@ -56,11 +52,6 @@ public class FileService {
         requestRepository.save(request);
 
         return fileDocument;
-    }
-
-    @Transactional
-    public List<FileDocument> getAllFromDB() {
-        return fileDocumentRepository.findAll();
     }
 
     @Transactional

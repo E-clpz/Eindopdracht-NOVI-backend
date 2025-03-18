@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Collection;
 
 @CrossOrigin
 @RestController
@@ -68,10 +67,5 @@ public class FileController {
         }
 
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + document.getFileName()).contentType(MediaType.valueOf(document.getContentType())).body(document.getFileData());
-    }
-
-    @GetMapping("/getAll/db")
-    public Collection<FileDocument> getAllFromDB() {
-        return fileService.getAllFromDB();
     }
 }

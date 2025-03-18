@@ -14,7 +14,12 @@ public class RequestMapper {
 
         HelperDto helperDto = null;
         if (request.getHelper() != null) {
-            helperDto = new HelperDto(request.getHelper().getId(), request.getHelper().getUsername());
+            helperDto = new HelperDto(
+                    request.getHelper().getId(),
+                    request.getHelper().getUsername(),
+                    request.getHelper().getEmail(),
+                    request.getHelper().getPhoneNumber(),
+                    request.getHelper().getRating());
         }
 
         Long requesterId = request.getRequester() != null ? request.getRequester().getId() : null;

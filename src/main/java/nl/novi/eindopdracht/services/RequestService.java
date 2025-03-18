@@ -65,6 +65,7 @@ public class RequestService {
         return requestMapper.toDto(request, helperEmail, helperPhoneNumber, fileUrl);
     }
 
+    @Transactional
     public List<RequestDto> getAllRequestsForHelpers(String categoryName, String city, String sortByDate) {
         List<Request> requests;
 
@@ -101,6 +102,7 @@ public class RequestService {
         }).collect(Collectors.toList());
     }
 
+    @Transactional
     public List<RequestDto> getRequestsForRequester(UserDetails userDetails) {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User niet gevonden"));

@@ -1,6 +1,9 @@
 package nl.novi.eindopdracht.controllers;
 
+import nl.novi.eindopdracht.dtos.CreateUserDto;
 import nl.novi.eindopdracht.dtos.UserDto;
+import nl.novi.eindopdracht.exceptions.ConflictException;
+import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
 import nl.novi.eindopdracht.models.User;
 import nl.novi.eindopdracht.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -50,13 +54,20 @@ public class UserController {
 
     @GetMapping("/my")
     public ResponseEntity<UserDto> getMyProfile(@AuthenticationPrincipal UserDetails user) {
-        UserDto userDto = userService.getUserDto(user, false, false);
+        UserDto userDto = userService.getUserDto(user, false);
         return ResponseEntity.ok(userDto);
     }
 
+    @PutMapping("/my")
+    public ResponseEntity<UserDto> updateMyProfile(@AuthenticationPrincipal UserDetails userDetails, @RequestBody UserDto userDto) {
+        UserDto existingUser = userService.getUserDto(userDetails, false);
+        UserDto updatedUser = userService.updateUser(existingUser.getId(), userDto);
+        return ResponseEntity.ok(updatedUser);
+    }
+
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
-        UserDto createdUser = userService.createUser(userDto);
+    public ResponseEntity<CreateUserDto> createUser(@RequestBody CreateUserDto createUserDto) {
+        CreateUserDto createdUser = userService.createUser(createUserDto);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
