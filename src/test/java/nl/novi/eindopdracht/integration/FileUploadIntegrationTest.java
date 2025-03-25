@@ -1,4 +1,4 @@
-package nl.novi.eindopdracht;
+package nl.novi.eindopdracht.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -55,8 +55,6 @@ public class FileUploadIntegrationTest {
         Category category = categoryRepository.findById(1L).orElseThrow(() -> new RuntimeException("Category not found"));
         User requester = userRepository.findById(1L).orElseThrow(() -> new RuntimeException("User not found"));
 
-        String fileUrl = "http://localhost:8080/downloadFromDB/testfile.jpg";
-
         Request request = new Request(
                 "Test Hulpvraag",
                 "Beschrijving van de test hulpvraag",
@@ -84,7 +82,7 @@ public class FileUploadIntegrationTest {
                         .param("requestId", String.valueOf(requestId))
                         .header("Authorization", token)
                         .contentType(MediaType.MULTIPART_FORM_DATA))
-                .andExpect(status().isOk());
+                        .andExpect(status().isOk());
 
         List<FileDocument> files = fileRepository.findAll();
         assertFalse(files.isEmpty());

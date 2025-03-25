@@ -13,9 +13,9 @@ public class FileDocument {
     @Lob
     private byte[] fileData;
 
-    private String contentType;
-
     private String fileUrl;
+
+    private String contentType;
 
     @OneToOne
     @JoinColumn(name = "request_id")
@@ -24,12 +24,12 @@ public class FileDocument {
     public FileDocument() {
     }
 
-    public FileDocument(String fileName, byte[] fileData, String contentType, Request request, String fileUrl) {
+    public FileDocument(String fileName, byte[] fileData, String fileUrl, String contentType, Request request) {
         this.fileName = fileName;
         this.fileData = fileData;
+        this.fileUrl = fileUrl;
         this.contentType = contentType;
         this.request = request;
-        this.fileUrl = fileUrl;
     }
 
     public Long getId() {
@@ -52,6 +52,14 @@ public class FileDocument {
         this.fileData = fileData;
     }
 
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
+    }
+
     public String getContentType() {
         return contentType;
     }
@@ -66,12 +74,5 @@ public class FileDocument {
 
     public void setRequest(Request request) {
         this.request = request;
-    }
-    public String getFileUrl() {
-        return fileUrl;
-    }
-
-    public void setFileUrl(String fileUrl) {
-        this.fileUrl = fileUrl;
     }
 }

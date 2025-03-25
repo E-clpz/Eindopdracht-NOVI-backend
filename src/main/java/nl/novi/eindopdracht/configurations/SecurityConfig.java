@@ -1,6 +1,5 @@
 package nl.novi.eindopdracht.configurations;
 
-import jakarta.servlet.http.HttpServletRequest;
 import nl.novi.eindopdracht.services.JwtService;
 import nl.novi.eindopdracht.services.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +19,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -49,26 +47,27 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.POST, "/api/requests").hasRole("REQUESTER")
+                        .requestMatchers(HttpMethod.POST, "/api/requests").hasAnyRole("REQUESTER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/requests").hasAnyRole("HELPER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/requests/my").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.GET, "/api/requests/{id}").hasAnyRole("HELPER", "REQUESTER")
-
                         .requestMatchers(HttpMethod.PUT, "/api/requests/{id}").hasAnyRole("REQUESTER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/requests/{id}/file").hasAnyRole("REQUESTER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/requests/**").hasAnyRole("HELPER", "REQUESTER")
                         .requestMatchers(HttpMethod.DELETE, "/api/requests/{id}").hasAnyRole("ADMIN", "REQUESTER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/requests/{id}/file").hasAnyRole("ADMIN", "REQUESTER")
                         .requestMatchers(HttpMethod.DELETE, "/api/requests/**").hasRole("REQUESTER")
 
-                        .requestMatchers(HttpMethod.GET, "/api/reviews/{id}").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/reviews/requester/**").hasRole("REQUESTER")
-
-                        .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/categories").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/categories/{id}").hasAnyRole("ADMIN", "REQUESTER")
                         .requestMatchers(HttpMethod.PUT, "/api/categories").hasAnyRole("ADMIN", "REQUESTER")
                         .requestMatchers(HttpMethod.PUT, "/api/categories/{id}").hasAnyRole("ADMIN", "REQUESTER")
 
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/{id}").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/reviews/requester/**").hasRole("REQUESTER")
+
                         .requestMatchers(HttpMethod.POST, "/single/uploadDb").hasRole("REQUESTER")
-                        .requestMatchers(HttpMethod.GET, "/downloadFromDB/**").hasRole("HELPER")
+                        .requestMatchers(HttpMethod.GET, "/downloadFromDB/**").hasAnyRole("HELPER", "REQUESTER")
 
                         .anyRequest().denyAll()
                 )

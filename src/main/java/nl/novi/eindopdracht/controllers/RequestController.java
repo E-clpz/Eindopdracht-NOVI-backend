@@ -2,11 +2,14 @@ package nl.novi.eindopdracht.controllers;
 
 import jakarta.validation.Valid;
 import nl.novi.eindopdracht.dtos.RequestDto;
+import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
 import nl.novi.eindopdracht.exceptions.UnauthorizedException;
 import nl.novi.eindopdracht.models.User;
 import nl.novi.eindopdracht.repositories.UserRepository;
 import nl.novi.eindopdracht.services.RequestService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -27,10 +30,7 @@ public class RequestController {
     }
 
     @GetMapping
-    public List<RequestDto> getAllRequestsForHelpers(
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String city,
-            @RequestParam(required = false) String sortByDate) {
+    public List<RequestDto> getAllRequestsForHelpers(@RequestParam(required = false) String category, @RequestParam(required = false) String city, @RequestParam(required = false) String sortByDate) {
         return requestService.getAllRequestsForHelpers(category, city, sortByDate);
     }
 
@@ -45,17 +45,13 @@ public class RequestController {
     }
 
     @PostMapping
-    public ResponseEntity<RequestDto> createRequest(
-            @Valid @RequestBody RequestDto requestDto,
-            @RequestParam(required = false) MultipartFile file,
-            @AuthenticationPrincipal org.springframework.security.core.userdetails.User userDetails) throws IOException {
+    public ResponseEntity<RequestDto> createRequest(@Valid @RequestBody RequestDto requestDto, @RequestParam(required = false) MultipartFile file, @AuthenticationPrincipal org.springframework.security.core.userdetails.User userDetails) throws IOException {
 
         if (userDetails == null) {
             throw new UnauthorizedException("Gebruiker niet gevonden");
         }
 
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new UnauthorizedException("Gebruiker niet gevonden in database"));
+        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(() -> new UnauthorizedException("Gebruiker niet gevonden in database"));
 
         requestDto.setRequesterId(user.getId());
 
@@ -64,29 +60,45 @@ public class RequestController {
     }
 
     @PutMapping("/{id}")
-    public RequestDto updateRequest(
-            @PathVariable Long id,
-            @Valid @RequestBody RequestDto requestDTO,
-            @RequestParam(required = false) MultipartFile file,
-            @AuthenticationPrincipal UserDetails user) throws IOException {
-        return requestService.updateRequest(id, requestDTO, file, user);
+    public ResponseEntity<RequestDto> updateRequestText(@PathVariable Long id, @RequestBody RequestDto requestDto, @AuthenticationPrincipal UserDetails user) {
+        RequestDto updatedRequest = requestService.updateRequestText(id, requestDto, user);
+        return ResponseEntity.ok(updatedRequest);
+    }
+
+    @PutMapping("/{id}/file")
+    public ResponseEntity<String> updateRequestFile(@PathVariable Long id, @RequestParam("file") MultipartFile file, @RequestParam(required = false) String deleteFile, @AuthenticationPrincipal UserDetails user) throws IOException {
+        return requestService.updateRequestFile(id, file, deleteFile, user);
     }
 
     @PutMapping("/{id}/accept")
-    public ResponseEntity<RequestDto> acceptRequest(
-            @PathVariable Long id,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        User helper = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new UnauthorizedException("Helper niet gevonden"));
+    public ResponseEntity<RequestDto> acceptRequest(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
+        User helper = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(() -> new UnauthorizedException("Helper niet gevonden"));
         RequestDto updatedRequest = requestService.acceptRequest(id, helper);
         return ResponseEntity.ok(updatedRequest);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRequest(
-            @PathVariable Long id,
-            @AuthenticationPrincipal UserDetails user) {
+    public ResponseEntity<Void> deleteRequest(@PathVariable Long id, @AuthenticationPrincipal UserDetails user) {
         requestService.deleteRequest(id, user);
         return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{requestId}/file")
+    public ResponseEntity<String> deleteFile(@PathVariable Long requestId, Authentication authentication) {
+        try {
+            UserDetails user = (UserDetails) authentication.getPrincipal();
+
+            String fileName = requestService.getFileNameFromRequest(requestId);
+
+            requestService.deleteFile(requestId, fileName, user);
+
+            return ResponseEntity.ok("Bestand succesvol verwijderd.");
+        } catch (UnauthorizedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Er is een fout opgetreden bij het verwijderen van het bestand.");
+        }
     }
 }

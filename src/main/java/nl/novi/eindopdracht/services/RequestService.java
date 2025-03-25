@@ -13,6 +13,7 @@ import nl.novi.eindopdracht.repositories.FileRepository;
 import nl.novi.eindopdracht.repositories.RequestRepository;
 import nl.novi.eindopdracht.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -31,20 +32,21 @@ public class RequestService {
     private final RequestMapper requestMapper;
     private final UserRepository userRepository;
     private final FileRepository fileRepository;
+    private final FileService fileService;
 
     @Autowired
-    public RequestService(RequestRepository requestRepository, CategoryRepository categoryRepository, RequestMapper requestMapper, UserRepository userRepository, FileRepository fileRepository) {
+    public RequestService(RequestRepository requestRepository, CategoryRepository categoryRepository, RequestMapper requestMapper, UserRepository userRepository, FileRepository fileRepository, FileService fileService) {
         this.requestRepository = requestRepository;
         this.categoryRepository = categoryRepository;
         this.requestMapper = requestMapper;
         this.userRepository = userRepository;
         this.fileRepository = fileRepository;
+        this.fileService = fileService;
     }
 
     @Transactional
     public RequestDto acceptRequest(Long requestId, User helper) {
-        Request request = requestRepository.findById(requestId)
-                .orElseThrow(() -> new ResourceNotFoundException("Hulpvraag niet gevonden"));
+        Request request = requestRepository.findById(requestId).orElseThrow(() -> new ResourceNotFoundException("Hulpvraag niet gevonden"));
 
         if ("Geaccepteerd".equals(request.getStatus())) {
             throw new ConflictException("Deze hulpvraag is al geaccepteerd.");
@@ -54,15 +56,12 @@ public class RequestService {
         request.setHelper(helper);
         request = requestRepository.save(request);
 
-        String helperEmail = request.getHelper().getEmail();
-        String helperPhoneNumber = request.getHelper().getPhoneNumber();
-
         String fileUrl = null;
         if (request.getFile() != null) {
             fileUrl = request.getFile().getFileUrl();
         }
 
-        return requestMapper.toDto(request, helperEmail, helperPhoneNumber, fileUrl);
+        return requestMapper.toDto(request, fileUrl);
     }
 
     @Transactional
@@ -70,17 +69,14 @@ public class RequestService {
         List<Request> requests;
 
         if (categoryName != null) {
-            Category category = categoryRepository.findByName(categoryName)
-                    .orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden: " + categoryName));
+            Category category = categoryRepository.findByName(categoryName).orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden: " + categoryName));
             requests = requestRepository.findByCategory(category);
         } else {
             requests = requestRepository.findAll();
         }
 
         if (city != null) {
-            requests = requests.stream()
-                    .filter(request -> request.getCity().equalsIgnoreCase(city))
-                    .collect(Collectors.toList());
+            requests = requests.stream().filter(request -> request.getCity().equalsIgnoreCase(city)).collect(Collectors.toList());
         }
 
         if ("asc".equalsIgnoreCase(sortByDate)) {
@@ -90,56 +86,44 @@ public class RequestService {
         }
 
         return requests.stream().map(request -> {
-            String helperEmail = request.getHelper() != null ? request.getHelper().getEmail() : null;
-            String helperPhoneNumber = request.getHelper() != null ? request.getHelper().getPhoneNumber() : null;
 
             String fileUrl = null;
             if (request.getFile() != null) {
                 fileUrl = request.getFile().getFileUrl();
             }
 
-            return requestMapper.toDto(request, helperEmail, helperPhoneNumber, fileUrl);
+            return requestMapper.toDto(request, fileUrl);
         }).collect(Collectors.toList());
     }
 
     @Transactional
     public List<RequestDto> getRequestsForRequester(UserDetails userDetails) {
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User niet gevonden"));
+        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(() -> new ResourceNotFoundException("User niet gevonden"));
 
         List<Request> requests = requestRepository.findByRequester(user);
 
         return requests.stream().map(request -> {
-            String helperEmail = null;
-            String helperPhoneNumber = null;
-            if (request.getHelper() != null) {
-                helperEmail = request.getHelper().getEmail();
-                helperPhoneNumber = request.getHelper().getPhoneNumber();
-            }
 
             String fileUrl = null;
             if (request.getFile() != null) {
                 fileUrl = request.getFile().getFileUrl();
             }
 
-            return requestMapper.toDto(request, helperEmail, helperPhoneNumber, fileUrl);
+            return requestMapper.toDto(request, fileUrl);
         }).collect(Collectors.toList());
     }
 
     @Transactional
-    public RequestDto updateRequest(Long id, RequestDto requestDto, MultipartFile file, UserDetails user) throws IOException {
-        Category category = categoryRepository.findByName(requestDto.getCategory())
-                .orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden: " + requestDto.getCategory()));
+    public RequestDto updateRequestText(Long id, RequestDto requestDto, UserDetails user) {
+        Category category = categoryRepository.findByName(requestDto.getCategory()).orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden: " + requestDto.getCategory()));
 
-        Request request = requestRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Request met id: " + id + " niet gevonden"));
+        Request request = requestRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Request met id: " + id + " niet gevonden"));
 
         if (request.getStatus().equals("Gesloten") || request.getStatus().equals("Geaccepteerd")) {
             throw new IllegalStateException("Je kunt een hulpvraag niet meer wijzigen als de status 'Gesloten' of 'Geaccepteerd' is.");
         }
 
-        if (!(request.getRequester().getUsername().equals(user.getUsername()) ||
-                user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")))) {
+        if (!(request.getRequester().getUsername().equals(user.getUsername()) || user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")))) {
             throw new UnauthorizedException("Je mag alleen je eigen hulpvragen bijwerken, of je moet admin zijn.");
         }
 
@@ -149,11 +133,33 @@ public class RequestService {
         request.setCity(requestDto.getCity());
         request.setCategory(category);
 
+        requestRepository.save(request);
+
+        return requestMapper.toDto(request, null);
+    }
+
+    @Transactional
+    public ResponseEntity<String> updateRequestFile(Long id, MultipartFile file, String deleteFile, UserDetails user) throws IOException {
+        Request request = requestRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Request met id: " + id + " niet gevonden"));
+
+        if (request.getStatus().equals("Gesloten") || request.getStatus().equals("Geaccepteerd")) {
+            throw new IllegalStateException("Je kunt een hulpvraag niet meer wijzigen als de status 'Gesloten' of 'Geaccepteerd' is.");
+        }
+
+        if (!(request.getRequester().getUsername().equals(user.getUsername()) || user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")))) {
+            throw new UnauthorizedException("Je mag alleen je eigen hulpvragen bijwerken, of je moet admin zijn.");
+        }
+
+        if ("true".equals(deleteFile) && request.getFile() != null) {
+            fileRepository.delete(request.getFile());
+            request.setFile(null);
+        }
+
         if (file != null && !file.isEmpty()) {
             String contentType = file.getContentType();
 
-            if (contentType != null && !(contentType.startsWith("image/") || contentType.equals("audio/mp3") || contentType.equals("application/pdf"))) {
-                throw new InvalidFileException("Alleen afbeeldingsbestanden, MP3's en PDF-bestanden worden geaccepteerd. Bestandstype: " + contentType);
+            if (contentType != null && !(contentType.startsWith("image/") || contentType.equals("application/pdf"))) {
+                throw new InvalidFileException("Alleen afbeeldingsbestanden en PDF-bestanden worden geaccepteerd. Bestandstype: " + contentType);
             }
 
             if (file.getSize() > 5 * 1024 * 1024) {
@@ -162,48 +168,61 @@ public class RequestService {
 
             byte[] fileBytes = file.getBytes();
 
-            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/api/files/downloadFromDB/")
-                    .path(file.getOriginalFilename())
-                    .toUriString();
+            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/files/downloadFromDB/").path(file.getOriginalFilename()).toUriString();
 
-            FileDocument fileDocument = new FileDocument(file.getOriginalFilename(), fileBytes, contentType, request, fileUrl);
+            FileDocument fileDocument = new FileDocument(file.getOriginalFilename(), fileBytes, fileUrl, contentType, request);
             fileRepository.save(fileDocument);
 
             request.setFile(fileDocument);
+            requestRepository.save(request);
         }
 
-        requestRepository.save(request);
-
-        String helperEmail = request.getHelper() != null ? request.getHelper().getEmail() : null;
-        String helperPhoneNumber = request.getHelper() != null ? request.getHelper().getPhoneNumber() : null;
-
-        String fileUrl = null;
-        FileDocument fileDocument = request.getFile();
-
-        if (fileDocument != null) {
-            fileUrl = fileDocument.getFileUrl();
-        }
-
-        return requestMapper.toDto(request, helperEmail, helperPhoneNumber, fileUrl);
+        return ResponseEntity.ok("Bestand succesvol geüpdatet");
     }
 
     public void deleteRequest(Long id, UserDetails user) {
-        Request request = requestRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Request met id: " + id + " niet gevonden"));
-        if (!request.getRequester().getUsername().equals(user.getUsername()) && user.getAuthorities().stream()
-                .noneMatch(auth -> auth.getAuthority().contains(Role.ADMIN.toString()))) {
+        Request request = requestRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Request met id: " + id + " niet gevonden"));
+        if (!request.getRequester().getUsername().equals(user.getUsername()) && user.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().contains(Role.ADMIN.toString()))) {
             throw new UnauthorizedException("Je mag alleen je eigen hulpvragen verwijderen, of je moet admin zijn.");
         }
         requestRepository.delete(request);
     }
 
-    public RequestDto createRequest(RequestDto requestDto, UserDetails userDetails, MultipartFile file) throws IOException {
-        Category category = categoryRepository.findByName(requestDto.getCategory())
-                .orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden: " + requestDto.getCategory()));
+    @Transactional
+    public void deleteFile(Long requestId, String fileName, UserDetails user) {
+        Request request = requestRepository.findById(requestId).orElseThrow(() -> new ResourceNotFoundException("Request met id: " + requestId + " niet gevonden"));
 
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User niet gevonden"));
+        if (!request.getRequester().getUsername().equals(user.getUsername()) && user.getAuthorities().stream().noneMatch(auth -> auth.getAuthority().contains(Role.ADMIN.toString()))) {
+            throw new UnauthorizedException("Je mag alleen je eigen bestand verwijderen, of je moet admin zijn.");
+        }
+
+        if (request.getFile() != null && request.getFile().getFileName().equals(fileName)) {
+            fileService.deleteFile(fileName);
+
+            request.setFile(null);
+            request.setFileName(null);
+
+            requestRepository.save(request);
+            System.out.println("Bestand met naam " + fileName + " succesvol verwijderd.");
+        } else {
+            throw new ResourceNotFoundException("Bestand met naam " + fileName + " niet gevonden in de aanvraag.");
+        }
+    }
+
+    public String getFileNameFromRequest(Long requestId) {
+        Request request = requestRepository.findById(requestId).orElseThrow(() -> new ResourceNotFoundException("Request met id: " + requestId + " niet gevonden"));
+
+        if (request.getFile() != null) {
+            return request.getFile().getFileName();
+        } else {
+            throw new ResourceNotFoundException("Geen bestand gekoppeld aan deze aanvraag.");
+        }
+    }
+
+    public RequestDto createRequest(RequestDto requestDto, UserDetails userDetails, MultipartFile file) throws IOException {
+        Category category = categoryRepository.findByName(requestDto.getCategory()).orElseThrow(() -> new ResourceNotFoundException("Categorie niet gevonden: " + requestDto.getCategory()));
+
+        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(() -> new ResourceNotFoundException("User niet gevonden"));
 
         Request request = requestMapper.toEntity(requestDto, category, user);
 
@@ -212,8 +231,7 @@ public class RequestService {
 
         if (file != null && !file.isEmpty()) {
             String contentType = file.getContentType();
-            if (contentType != null &&
-                    !(contentType.startsWith("image/") || contentType.equals("application/pdf"))) {
+            if (contentType != null && !(contentType.startsWith("image/") || contentType.equals("application/pdf"))) {
                 throw new InvalidFileException("Alleen afbeeldingsbestanden en PDF-bestanden worden geaccepteerd.");
             }
 
@@ -231,34 +249,26 @@ public class RequestService {
 
         request = requestRepository.save(request);
 
-        String helperEmail = request.getHelper() != null ? request.getHelper().getEmail() : null;
-        String helperPhoneNumber = request.getHelper() != null ? request.getHelper().getPhoneNumber() : null;
-
         String fileUrl = null;
         if (request.getFileName() != null) {
             fileUrl = "/api/files/downloadFromDB/" + request.getId();
         }
 
-        return requestMapper.toDto(request, helperEmail, helperPhoneNumber, fileUrl);
+        return requestMapper.toDto(request, fileUrl);
     }
 
-
     public RequestDto getRequestsById(long id, UserDetails user) {
-        Request request = requestRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Request id: " + id + " niet gevonden"));
+        Request request = requestRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Request id: " + id + " niet gevonden"));
 
         if (!request.getRequester().getUsername().equals(user.getUsername())) {
             throw new UnauthorizedException("Je bent niet gemachtigd deze request te bekijken");
         }
-
-        String helperEmail = request.getHelper() != null ? request.getHelper().getEmail() : null;
-        String helperPhoneNumber = request.getHelper() != null ? request.getHelper().getPhoneNumber() : null;
 
         String fileUrl = null;
         if (request.getFileName() != null) {
             fileUrl = "/api/files/downloadFromDB/" + request.getFileName();
         }
 
-        return requestMapper.toDto(request, helperEmail, helperPhoneNumber, fileUrl);
+        return requestMapper.toDto(request, fileUrl);
     }
 }

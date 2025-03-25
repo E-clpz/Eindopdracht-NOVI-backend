@@ -22,12 +22,11 @@ import java.util.stream.Collectors;
 @Service
 public class ReviewService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ReviewService.class);
     @Autowired
     private RequestRepository requestRepository;
-
     @Autowired
     private ReviewRepository reviewRepository;
-
     @Autowired
     private UserRepository userRepository;
 
@@ -38,8 +37,6 @@ public class ReviewService {
             checkAndCloseRequest(request.getId());
         }
     }
-
-    private static final Logger logger = LoggerFactory.getLogger(ReviewService.class);
 
     public void checkAndCloseRequest(Long requestId) {
         Optional<Request> requestOptional = requestRepository.findById(requestId);
@@ -55,28 +52,23 @@ public class ReviewService {
 
     public List<ReviewDto> getReviewsByRequester(Long requesterId) {
         List<Review> reviews = reviewRepository.findByRequesterId(requesterId);
-        return reviews.stream()
-                .map(review -> {
-                    Long requestId = review.getRequester().getId();
-                    return new ReviewDto(review.getId(), review.getRequester().getId(), review.getHelper().getId(), review.getRating(), requestId);
-                })
-                .collect(Collectors.toList());
+        return reviews.stream().map(review -> {
+            Long requestId = review.getRequester().getId();
+            return new ReviewDto(review.getId(), review.getRequester().getId(), review.getHelper().getId(), review.getRating(), requestId);
+        }).collect(Collectors.toList());
     }
 
     public ReviewDto addReview(Long requesterId, Long helperId, ReviewDto reviewDto) {
         logger.info("Requester {} voegt een review toe voor Helper {}", requesterId, helperId);
 
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new ResourceNotFoundException("Requester niet gevonden"));
-        User helper = userRepository.findById(helperId)
-                .orElseThrow(() -> new ResourceNotFoundException("Helper niet gevonden"));
+        User requester = userRepository.findById(requesterId).orElseThrow(() -> new ResourceNotFoundException("Requester niet gevonden"));
+        User helper = userRepository.findById(helperId).orElseThrow(() -> new ResourceNotFoundException("Helper niet gevonden"));
 
         if (reviewDto.getRating() < 1 || reviewDto.getRating() > 5) {
             throw new IllegalArgumentException("De beoordeling moet tussen 1 en 5 sterren liggen.");
         }
 
-        Request request = requestRepository.findByRequesterIdAndHelperId(requesterId, helperId)
-                .orElseThrow(() -> new ResourceNotFoundException("Geen bijbehorende hulpvraag gevonden."));
+        Request request = requestRepository.findByRequesterIdAndHelperId(requesterId, helperId).orElseThrow(() -> new ResourceNotFoundException("Geen bijbehorende hulpvraag gevonden."));
 
         if (!"Gesloten".equalsIgnoreCase(request.getStatus())) {
             throw new IllegalStateException("Je kunt alleen een review achterlaten als de hulpvraag gesloten is.");

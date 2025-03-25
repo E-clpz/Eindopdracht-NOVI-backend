@@ -1,7 +1,6 @@
 package nl.novi.eindopdracht.controllers;
 
 import nl.novi.eindopdracht.dtos.CreateUserDto;
-import nl.novi.eindopdracht.dtos.UserDto;
 import nl.novi.eindopdracht.dtos.UserLoginRequestDTO;
 import nl.novi.eindopdracht.models.User;
 import nl.novi.eindopdracht.repositories.UserRepository;
@@ -57,8 +56,7 @@ public class AuthController {
             Authentication auth = authenticationManager.authenticate(authenticationToken);
             UserDetails userDetails = (UserDetails) auth.getPrincipal();
 
-            User user = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + userDetails.getUsername()));
+            User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + userDetails.getUsername()));
 
             Long userId = user.getId();
 

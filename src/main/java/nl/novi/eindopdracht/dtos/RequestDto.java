@@ -10,16 +10,14 @@ public class RequestDto {
     private String status;
     private String city;
     private Long requesterId;
-    private HelperDto helper;
+    private UserDto helper;
     private LocalDate preferredDate;
-    private String helperEmail;
-    private String helperPhoneNumber;
     private String fileUrl;
 
     public RequestDto() {
     }
 
-    public RequestDto(Long id, String title, String description, String category, String status, String city, Long requesterId, HelperDto helper, LocalDate preferredDate, String helperEmail, String helperPhoneNumber, String fileUrl) {
+    public RequestDto(Long id, String title, String description, String category, String status, String city, Long requesterId, UserDto helper, LocalDate preferredDate, String fileUrl) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -29,8 +27,6 @@ public class RequestDto {
         this.requesterId = requesterId;
         this.helper = helper;
         this.preferredDate = preferredDate;
-        this.helperEmail = helperEmail;
-        this.helperPhoneNumber = helperPhoneNumber;
         this.fileUrl = fileUrl;
 
     }
@@ -91,11 +87,11 @@ public class RequestDto {
         this.requesterId = requesterId;
     }
 
-    public HelperDto getHelper() {
+    public UserDto getHelper() {
         return helper;
     }
 
-    public void setHelper(HelperDto helper) {
+    public void setHelper(UserDto helper) {
         this.helper = helper;
     }
 
@@ -105,22 +101,6 @@ public class RequestDto {
 
     public void setPreferredDate(LocalDate preferredDate) {
         this.preferredDate = preferredDate;
-    }
-
-    public String getHelperEmail() {
-        return helperEmail;
-    }
-
-    public void setHelperEmail(String helperEmail) {
-        this.helperEmail = helperEmail;
-    }
-
-    public String getHelperPhoneNumber() {
-        return helperPhoneNumber;
-    }
-
-    public void setHelperPhoneNumber(String helperPhoneNumber) {
-        this.helperPhoneNumber = helperPhoneNumber;
     }
 
     public String getFileUrl() {

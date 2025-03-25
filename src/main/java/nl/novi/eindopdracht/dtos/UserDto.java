@@ -9,6 +9,7 @@ public class UserDto {
     private String email;
     private String phoneNumber;
     private Role role;
+    private Integer rating;
 
     public UserDto() {
     }
@@ -19,13 +20,14 @@ public class UserDto {
         this.city = city;
     }
 
-    public UserDto(Long id, String username, String city, String email, String phoneNumber, Role role) {
+    public UserDto(Long id, String username, String city, String email, String phoneNumber, Role role, Integer rating) {
         this.id = id;
         this.username = username;
         this.city = city;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.role = role;
+        this.rating = rating;
     }
 
     public Long getId() {
@@ -74,6 +76,14 @@ public class UserDto {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public Integer getRating() {
+        return rating;
+    }
+
+    public void setRating(Integer rating) {
+        this.rating = rating;
     }
 }
 

@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,25 +30,22 @@ public class UserService {
     }
 
     public UserDto getUserDto(UserDetails userDetails, boolean isAdmin) {
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User niet gevonden"));
+        User user = userRepository.findByUsername(userDetails.getUsername()).orElseThrow(() -> new ResourceNotFoundException("User niet gevonden"));
 
         boolean isSelf = user.getUsername().equals(userDetails.getUsername());
 
         if (isAdmin || isSelf) {
-            return new UserDto(user.getId(), user.getUsername(), user.getCity(), user.getEmail(), user.getPhoneNumber(), user.getRole());
+            return new UserDto(user.getId(), user.getUsername(), user.getCity(), user.getEmail(), user.getPhoneNumber(), user.getRole(), user.getRating());
         } else {
             return new UserDto(user.getId(), user.getUsername(), user.getCity());
         }
     }
 
-    private boolean isValidPassword(String password) {
+    public boolean isValidPassword(String password) {
         String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{8,}$";
         boolean isValid = password.matches(passwordPattern);
         if (!isValid) {
-            System.out.println("Fout wachtwoord: Wachtwoord moet minimaal 8 tekens bevatten, " +
-                    "met ten minste één kleine letter, één hoofdletter, één cijfer en " +
-                    "één speciaal teken (@#$%^&+=!).");
+            System.out.println("Fout wachtwoord: Wachtwoord moet minimaal 8 tekens bevatten, " + "met ten minste één kleine letter, één hoofdletter, één cijfer en " + "één speciaal teken (@#$%^&+=!).");
         }
         return isValid;
     }
@@ -85,21 +83,17 @@ public class UserService {
     }
 
     public UserDto updateUser(Long id, UserDto userDto) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Gebruiker niet gevonden"));
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Gebruiker niet gevonden"));
 
-        if (userDto.getUsername() != null && !user.getUsername().equals(userDto.getUsername()) &&
-                userRepository.existsByUsername(userDto.getUsername())) {
+        if (userDto.getUsername() != null && !user.getUsername().equals(userDto.getUsername()) && userRepository.existsByUsername(userDto.getUsername())) {
             throw new ConflictException("Gebruikersnaam is al in gebruik.");
         }
 
-        if (userDto.getEmail() != null && !user.getEmail().equals(userDto.getEmail()) &&
-                userRepository.existsByEmail(userDto.getEmail())) {
+        if (userDto.getEmail() != null && !user.getEmail().equals(userDto.getEmail()) && userRepository.existsByEmail(userDto.getEmail())) {
             throw new ConflictException("E-mailadres is al in gebruik.");
         }
 
-        if (userDto.getPhoneNumber() != null && !user.getPhoneNumber().equals(userDto.getPhoneNumber()) &&
-                userRepository.existsByPhoneNumber(userDto.getPhoneNumber())) {
+        if (userDto.getPhoneNumber() != null && !user.getPhoneNumber().equals(userDto.getPhoneNumber()) && userRepository.existsByPhoneNumber(userDto.getPhoneNumber())) {
             throw new ConflictException("Telefoonnummer is al in gebruik.");
         }
 
@@ -118,26 +112,25 @@ public class UserService {
 
         User updatedUser = userRepository.save(user);
 
-        return new UserDto(updatedUser.getId(), updatedUser.getUsername(), updatedUser.getCity(),
-                updatedUser.getEmail(), updatedUser.getPhoneNumber(), updatedUser.getRole());
+        return new UserDto(updatedUser.getId(), updatedUser.getUsername(), updatedUser.getCity(), updatedUser.getEmail(), updatedUser.getPhoneNumber(), updatedUser.getRole(), user.getRating());
     }
 
     public void deleteUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Gebruiker niet gevonden"));
 
-        List<Request> requests = requestRepository.findByRequester(user);
+        List<Request> requests = new ArrayList<>();
+        requests.addAll(requestRepository.findByRequester(user));
         requests.addAll(requestRepository.findByHelper(user));
 
         for (Request request : requests) {
             if (request.getHelper() != null && request.getHelper().equals(user)) {
                 request.setHelper(null);
+                request.setStatus("Open");
             }
         }
 
         requestRepository.saveAll(requests);
-
         requestRepository.deleteAll(requestRepository.findByRequester(user));
-
         userRepository.delete(user);
     }
 

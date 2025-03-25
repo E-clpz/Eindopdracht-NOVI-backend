@@ -3,7 +3,6 @@ package nl.novi.eindopdracht.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.Cascade;
 
 @Entity

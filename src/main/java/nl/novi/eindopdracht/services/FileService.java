@@ -18,10 +18,12 @@ public class FileService {
 
     private final FileRepository fileDocumentRepository;
     private final RequestRepository requestRepository;
+    private final FileRepository fileRepository;
 
-    public FileService(FileRepository fileDocumentRepository, RequestRepository requestRepository) {
+    public FileService(FileRepository fileDocumentRepository, RequestRepository requestRepository, FileRepository fileRepository) {
         this.fileDocumentRepository = fileDocumentRepository;
         this.requestRepository = requestRepository;
+        this.fileRepository = fileRepository;
     }
 
     @Transactional
@@ -56,6 +58,21 @@ public class FileService {
 
     @Transactional
     public FileDocument getFileDocument(String fileName) {
-        return fileDocumentRepository.findByFileName(fileName);
+        FileDocument fileDocument = fileRepository.findByFileName(fileName);
+        if (fileDocument == null) {
+            throw new ResourceNotFoundException("Bestand niet gevonden met naam: " + fileName);
+        }
+        return fileDocument;
+    }
+
+    @Transactional
+    public void deleteFile(String fileName) {
+        FileDocument fileDocument = fileDocumentRepository.findByFileName(fileName);
+        if (fileDocument != null) {
+            fileDocumentRepository.delete(fileDocument);
+            System.out.println("Bestand " + fileName + " succesvol verwijderd.");
+        } else {
+            throw new ResourceNotFoundException("Bestand met naam " + fileName + " niet gevonden.");
+        }
     }
 }

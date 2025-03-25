@@ -2,6 +2,7 @@ package nl.novi.eindopdracht.controllers;
 
 import nl.novi.eindopdracht.FileUploadResponse.FileUploadResponse;
 import nl.novi.eindopdracht.dtos.RequestDto;
+import nl.novi.eindopdracht.exceptions.UnauthorizedException;
 import nl.novi.eindopdracht.models.FileDocument;
 import nl.novi.eindopdracht.models.Request;
 import nl.novi.eindopdracht.repositories.RequestRepository;
@@ -55,11 +56,18 @@ public class FileController {
 
         requestRepository.save(request);
 
-        return new FileUploadResponse(fileDocument.getFileName(), fileDocument.getFileUrl(), fileDocument.getContentType());
+        return new FileUploadResponse(fileDocument.getFileName(), "http://localhost:8080/downloadFromDB/" + fileDocument.getFileName(), fileDocument.getContentType());
     }
 
     @GetMapping("/downloadFromDB/{fileName}")
-    ResponseEntity<byte[]> downLoadSingleFile(@PathVariable String fileName) {
+    ResponseEntity<byte[]> downLoadSingleFile(@PathVariable String fileName, @RequestHeader("Authorization") String authHeader) {
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new UnauthorizedException("Gebruiker is niet gemachtigd.");
+        }
+
+        String token = authHeader.substring(7);
+        System.out.println("Token: " + token);
 
         FileDocument document = fileService.getFileDocument(fileName);
         if (document == null) {

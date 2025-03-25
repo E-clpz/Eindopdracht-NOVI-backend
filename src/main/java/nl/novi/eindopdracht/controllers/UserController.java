@@ -2,8 +2,6 @@ package nl.novi.eindopdracht.controllers;
 
 import nl.novi.eindopdracht.dtos.CreateUserDto;
 import nl.novi.eindopdracht.dtos.UserDto;
-import nl.novi.eindopdracht.exceptions.ConflictException;
-import nl.novi.eindopdracht.exceptions.ResourceNotFoundException;
 import nl.novi.eindopdracht.models.User;
 import nl.novi.eindopdracht.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,10 +26,7 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers(
-            @RequestParam(value = "id", required = false) Optional<Long> id,
-            @RequestParam(value = "username", required = false) Optional<String> username,
-            @RequestParam(value = "email", required = false) Optional<String> email) {
+    public ResponseEntity<List<User>> getAllUsers(@RequestParam(value = "id", required = false) Optional<Long> id, @RequestParam(value = "username", required = false) Optional<String> username, @RequestParam(value = "email", required = false) Optional<String> email) {
 
         List<User> users;
 

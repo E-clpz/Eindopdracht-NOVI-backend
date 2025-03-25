@@ -1,7 +1,7 @@
 package nl.novi.eindopdracht.mappers;
 
-import nl.novi.eindopdracht.dtos.HelperDto;
 import nl.novi.eindopdracht.dtos.RequestDto;
+import nl.novi.eindopdracht.dtos.UserDto;
 import nl.novi.eindopdracht.models.Category;
 import nl.novi.eindopdracht.models.Request;
 import nl.novi.eindopdracht.models.User;
@@ -10,24 +10,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class RequestMapper {
 
-    public RequestDto toDto(Request request, String helperEmail, String helperPhoneNumber, String fileUrl) {
+    public RequestDto toDto(Request request, String fileUrl) {
 
-        HelperDto helperDto = null;
+        UserDto userDto = null;
         if (request.getHelper() != null) {
-            helperDto = new HelperDto(
+            userDto = new UserDto(
                     request.getHelper().getId(),
                     request.getHelper().getUsername(),
+                    request.getHelper().getCity(),
                     request.getHelper().getEmail(),
                     request.getHelper().getPhoneNumber(),
-                    request.getHelper().getRating());
+                    request.getHelper().getRole(),
+                    request.getHelper().getRating()
+            );
         }
 
         Long requesterId = request.getRequester() != null ? request.getRequester().getId() : null;
-
-        if ("Geaccepteerd".equals(request.getStatus()) && request.getHelper() != null) {
-            helperEmail = request.getHelper().getEmail();
-            helperPhoneNumber = request.getHelper().getPhoneNumber();
-        }
 
         return new RequestDto(
                 request.getId(),
@@ -37,13 +35,12 @@ public class RequestMapper {
                 request.getStatus(),
                 request.getCity(),
                 requesterId,
-                helperDto,
+                userDto,
                 request.getPreferredDate(),
-                helperEmail,
-                helperPhoneNumber,
                 fileUrl
         );
     }
+
 
     public Request toEntity(RequestDto requestDto, Category category, User user) {
         return new Request(
